@@ -30,8 +30,6 @@ game = function () {
         //  The score
         // scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
         FindArena();
-
-        Meteor.subscribe("ReadyToPlay", StartGame);
     }
 
     function FindArena() {
@@ -47,11 +45,11 @@ game = function () {
         }
 
         var arena = arenas.fetch()[0];
-        
-        Arenas.find({ _id : arena._id }).observe({ arenaUpdated: function (item) { console.log("Arena was updated") } });
-        
+
+        Arenas.find({ _id: arena._id }).observe({ changed: ArenaChanged(arena._id) });
+
         arena.playerCount++;
-        
+
         var player;
 
         if (arena.playerCount == 1) {
@@ -66,25 +64,9 @@ game = function () {
         arena.players.push(player);
 
         Arenas.update({ _id: arena._id }, { $set: { playerCount: arena.playerCount, players: arena.players } });
-
-        if (arena.playerCount == 1) {
-            // only have one player, throw up a message about waiting for the other
-
-            waitingForPlayerText = game.add.text(16, 16, 'Waiting for other player to join', { fontSize: '32px', fill: '#000' });
-        }
-        else {
-            // got two players, start game
-
-            waitingForPlayerText = null;
-
-            //Meteor.publish("ReadyToPlay", function () { });
-
-            SpawnPlayers(arena);
-        }
     }
 
-    function SetupPlayerDB(arena, playerName, turn)
-    {
+    function SetupPlayerDB(arena, playerName, turn) {
         player = Players.findOne({ name: playerName });
 
         if (player == null) {
@@ -97,6 +79,31 @@ game = function () {
         }
 
         return player;
+    }
+
+    function ArenaChanged(arenaId) {
+        
+        console.log("Arena changed: " + arenaId);
+
+        var arena = Arenas.find({ _id: arenaId }).fetch()[0];
+
+        if (arena.playerCount == 1) {
+            // only have one player, throw up a message about waiting for the other
+
+            waitingForPlayerText = game.add.text(16, 16, 'Waiting for other player to join', { fontSize: '32px', fill: '#000' });
+        }
+        else if (arena.playerCount == 2) {
+            // got two players, start game
+
+            waitingForPlayerText = null;
+
+            //Meteor.publish("ReadyToPlay", function () { });
+
+            SpawnPlayers(arena);
+        }
+        else {
+            console.log("Somehow we got too many players: " + arena.playerCount.toString());
+        }
     }
 
     function SpawnPlayers(arena)
