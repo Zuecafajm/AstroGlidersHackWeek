@@ -5,12 +5,12 @@ var gameHeight = 720;
 
 game = function () {
     var game;
-    var player1;
-    var player2;
     var platforms;
 
     var score = 0;
     var scoreText;
+
+    var waitingForPlayerText;
 
     function preload() {
         game.load.image('ground', '/assets/platform.png');
@@ -29,6 +29,104 @@ game = function () {
 
         //  The score
         // scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+        FindArena();
+
+        Meteor.subscribe("ReadyToPlay", StartGame);
+    }
+
+    function FindArena() {
+        // search for an arena
+        var arenas = Arenas.find({ playerCount: 1 });
+        
+        if (null == arenas || arenas.fetch().length == 0) {
+            // we don't find an already open arena, create one
+            Arenas.insert({ playerCount: 0, activePlayerId : 0, players : [] });
+            arenas = Arenas.find({ playerCount: 0 });
+            
+            console.log("didn't find one");
+        }
+
+        Arenas.find({ playerCount: 1 }).observe({ arenaUpdated: function (item) { console.log("Arena was updated") } });
+
+        var arena = arenas.fetch()[0];
+
+        arena.playerCount++;
+        
+        var player;
+
+        if (arena.playerCount == 1) {
+            player = SetupPlayerDB(arena, "Stu", true);
+        }
+        else {
+            player = SetupPlayerDB(arena, "Aaron", false);
+        }
+
+        console.log("Number of players in the arena: " + arena.playerCount.toString());
+
+        arena.players.push(player);
+
+        Arenas.update({ _id: arena._id }, { $set: { playerCount: arena.playerCount, players: arena.players } });
+
+        if (arena.playerCount == 1) {
+            // only have one player, throw up a message about waiting for the other
+
+            waitingForPlayerText = game.add.text(16, 16, 'Waiting for other player to join', { fontSize: '32px', fill: '#000' });
+        }
+        else {
+            // got two players, start game
+
+            waitingForPlayerText = null;
+
+            //Meteor.publish("ReadyToPlay", function () { });
+
+            SpawnPlayers(arena);
+        }
+    }
+
+    function SetupPlayerDB(arena, playerName, turn)
+    {
+        player = Players.findOne({ name: playerName });
+
+        if (player == null) {
+            // player wasn't found, add to the database
+            player = Players.insert({ name: playerName, playerNumber: arena.playerCount, playersTurn: turn });
+        }
+        else {
+            // player's already in the database, modify record with new game
+            Players.update({ _id: player._id }, { $set: { name: playerName, playerNumber: arena.playerCount, playersTurn: turn } });
+        }
+
+        return player;
+    }
+
+    function SpawnPlayers(arena)
+    {
+        console.log("Spawn our players");
+    }
+
+    function CreatePlayer()
+    {
+        var posY = gameHeight - 150;
+
+        var posX;
+        var rotation;
+
+        if (playerNumber == 1) {
+            posX = gameWidth / 8.0;
+            rotation = -Math.PI / 2;
+        }
+        else {
+            posX = gameWidth / 8.0 * 7
+            rotation = Math.PI / 2;
+        }
+
+        players = AstroGliders.Tank(posX, posY, rotation, game);
+    }
+
+
+
+    function StartGame() {
+        console.log("starting game");
     }
 
     function SetupWorld() {
@@ -59,8 +157,8 @@ game = function () {
     function update() {
 
         //  Collide the player and the stars with the platforms
-        game.physics.arcade.collide(player1, platforms);
-        game.physics.arcade.collide(player2, platforms);
+        //game.physics.arcade.collide(player1, platforms);
+        //game.physics.arcade.collide(player2, platforms);
 
         //player1.Update(player2, platforms);
         //player2.Update(player1, platforms);
@@ -80,24 +178,6 @@ game = function () {
                 create: create,
                 update: update
             });
-        },
-
-        PlacePlayer: function (playerNumber) {
-            var posY = gameHeight - 150;
-
-            var posX;
-            var rotation;
-
-            if (playerNumber == 1) {
-                posX = gameWidth / 8.0;
-                rotation = -Math.PI / 2;
-            }
-            else {
-                posX = gameWidth / 8.0 * 7
-                rotation = Math.PI / 2;
-            }
-
-            players = AstroGliders.Tank(posX, posY, rotation, game);
         }
     };
 }
