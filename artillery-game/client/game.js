@@ -37,7 +37,7 @@ game = function () {
     function FindArena() {
         // search for an arena
         var arenas = Arenas.find({ playerCount: 1 });
-        
+
         if (null == arenas || arenas.fetch().length == 0) {
             // we don't find an already open arena, create one
             Arenas.insert({ playerCount: 0, activePlayerId : 0, players : [] });
@@ -46,10 +46,10 @@ game = function () {
             console.log("didn't find one");
         }
 
-        Arenas.find({ playerCount: 1 }).observe({ arenaUpdated: function (item) { console.log("Arena was updated") } });
-
         var arena = arenas.fetch()[0];
-
+        
+        Arenas.find({ _id : arena._id }).observe({ arenaUpdated: function (item) { console.log("Arena was updated") } });
+        
         arena.playerCount++;
         
         var player;
