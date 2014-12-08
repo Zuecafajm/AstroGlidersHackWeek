@@ -1,5 +1,8 @@
 window.AstroGliders = window.AstroGliders || {};
 
+var gameWidth = 1280;
+var gameHeight = 720;
+
 game = function () {
     var game;
     var player1;
@@ -8,9 +11,6 @@ game = function () {
 
     var score = 0;
     var scoreText;
-
-    var gameWidth = 1280;
-    var gameHeight = 720;
 
     function preload() {
         game.load.image('ground', '/assets/platform.png');
@@ -24,11 +24,11 @@ game = function () {
 
         SetupWorld();
 
-        player1 = AstroGliders.Tank(32, game.world.height - 150, -Math.PI / 2, game);
-        player2 = AstroGliders.Tank(1200, game.world.height - 150, Math.PI / 2, game);
+        //player1 = AstroGliders.Tank(32, game.world.height - 150, -Math.PI / 2, game);
+        //player2 = AstroGliders.Tank(1200, game.world.height - 150, Math.PI / 2, game);
 
         //  The score
-        scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+        // scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
     }
 
     function SetupWorld() {
@@ -62,8 +62,8 @@ game = function () {
         game.physics.arcade.collide(player1, platforms);
         game.physics.arcade.collide(player2, platforms);
 
-        player1.Update(player2, platforms);
-        player2.Update(player1, platforms);
+        //player1.Update(player2, platforms);
+        //player2.Update(player1, platforms);
     }
 
     /**
@@ -80,6 +80,24 @@ game = function () {
                 create: create,
                 update: update
             });
+        },
+
+        PlacePlayer: function (playerNumber) {
+            var posY = gameHeight - 150;
+
+            var posX;
+            var rotation;
+
+            if (playerNumber == 1) {
+                posX = gameWidth / 8.0;
+                rotation = -Math.PI / 2;
+            }
+            else {
+                posX = gameWidth / 8.0 * 7
+                rotation = Math.PI / 2;
+            }
+
+            players = AstroGliders.Tank(posX, posY, rotation, game);
         }
     };
 }
