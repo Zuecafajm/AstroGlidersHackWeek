@@ -17,6 +17,8 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
 
     tank.rotation = rotation;
 
+    tank.isPlayer = isPlayer;
+
     if (isPlayer) {
         tank.fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         tank.fireButton.onDown.add(Fire, tank);
@@ -98,6 +100,12 @@ function Update(otherPlayer, platforms) {
                 this.shots[i].kill();
                 this.shots.splice(i, 1);
                 otherPlayer.kill();
+
+                if (this.isPlayer) {
+                    // this player wins!
+                    Actions.insert({ matchId: this.matchId, actionType: ActionTypeEnum.GameOver, winningPlayerId: this.playerId, losingPlayerId: "" });
+                }
+
                 continue;
             }
 
@@ -118,6 +126,12 @@ function Update(otherPlayer, platforms) {
                 this.kill();
                 this.shots[i].kill();
                 this.shots.splice(i, 1);
+
+                if (this.isPlayer) {
+                    // this player loses :(
+                    Actions.insert({ matchId: this.matchId, actionType: ActionTypeEnum.GameOver, winningPlayerId: "", losingPlayerId: this.playerId });
+                }
+
                 continue;
             }
         }

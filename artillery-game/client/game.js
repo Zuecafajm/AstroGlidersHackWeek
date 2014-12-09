@@ -6,7 +6,8 @@ var gameHeight = 720;
 ActionTypeEnum = {
     PlayerConnect : "PlayerConnect",
     PlayerShoot: "PlayerShoot",
-    PlayerDisconnect: "PlayerDisconnect"
+    PlayerDisconnect: "PlayerDisconnect",
+    GameOver: "GameOver"
 }
 
 game = function () {
@@ -145,6 +146,41 @@ game = function () {
                 playerTank.active = true;
             }
         }
+        else if (actionItem.actionType == ActionTypeEnum.GameOver) {
+            // did we win?
+            if (actionItem.winningPlayerId == playerId) {
+                Win();
+            }
+
+            // did another player win?
+            else if (actionItem.winningPlayerId != "") {
+                Actions.update({ _id: actionItem._id }, { $set: { losingPlayerId: playerId } });
+                Lose();
+            }
+
+            // did we lose?
+            else if (actionItem.losingPlayerId == playerId) {
+                Lose();
+            }
+
+            // did another player lose?
+            else if (actionItem.losingPlayerId != "") {
+                Actions.update({_id : actionItem._id}, { $set : { winningPlayerId : playerId } });
+                Win();
+            }
+
+            else {
+                console.log("We finished the game with nobody winning. This isn't right");
+            }
+        }
+    }
+
+    function Win() {
+        game.add.text(300, 300, 'YOU WIN', { fontSize: '32px', fill: '#000' });
+    }
+
+    function Lose() {
+        game.add.text(300, 300, 'YOU LOSE', { fontSize: '32px', fill: '#000' });
     }
 
     function SpawnPlayers(match)
