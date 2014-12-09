@@ -145,7 +145,7 @@ game = function () {
         }
         else if (actionItem.actionType == ActionTypeEnum.PlayerShoot) {
             if (actionItem.playerId != playerId) {
-                otherPlayerTank.Shoot(actionItem.velocity, actionItem.rotation);
+                otherPlayerTank.RotateAndShoot(actionItem.velocity, actionItem.rotation);
                 playerTank.active = true;
             }
         }
@@ -179,11 +179,13 @@ game = function () {
     }
 
     function Win() {
-        game.add.text(300, 300, 'YOU WIN', { fontSize: '32px', fill: '#000' });
+        var gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'YOU WIN', { fontSize: '32px', fill: '#000' });
+        gameOverText.anchor.setTo(0.5, 0.5);
     }
 
     function Lose() {
-        game.add.text(300, 300, 'YOU LOSE', { fontSize: '32px', fill: '#000' });
+        var gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'YOU LOSE', { fontSize: '32px', fill: '#000' });
+        gameOverText.anchor.setTo(0.5, 0.5);
     }
 
     function SpawnPlayers(match)

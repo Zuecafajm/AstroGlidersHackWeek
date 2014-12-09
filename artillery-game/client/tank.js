@@ -29,6 +29,8 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
 
     tank.Update = Update;
     tank.Shoot = Shoot;
+    tank.RotateAndShoot = RotateAndShoot;
+    tank.RotateToDestination = RotateToDestination;
 
     tank.shots = [];
 
@@ -36,6 +38,8 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
 
     tank.matchId = matchId;
     tank.playerId = playerId;
+
+    tank.hasQueuedShot = false;
 
     return tank;
 }
@@ -61,13 +65,21 @@ function Fire() {
 
         shot.body.velocity.set(shotVelocity.x, shotVelocity.y);
 
-        Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: shotVelocity, rotation : this.rotation });
+        this.hasQueuedShot = true;
+        Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: shotVelocity, rotation: this.rotation });
 
         this.active = false;
     }
 }
 
-function Shoot(velocity, tankRotation) {
+function RotateAndShoot(velocity, tankRotation) {
+    this.hasQueuedShot = true;
+
+    this.desiredRotation = tankRotation;
+    this.desiredShotVelocity = velocity;
+}
+
+function Shoot() {
     shot = this.game.add.sprite(this.x, this.y, 'star');
 
     this.shots.push(shot);
@@ -82,9 +94,23 @@ function Shoot(velocity, tankRotation) {
 
     shot.enableBody = true;
 
-    this.rotation = tankRotation;
+    shot.body.velocity.set(this.desiredShotVelocity.x, this.desiredShotVelocity.y);
 
-    shot.body.velocity.set(velocity.x, velocity.y);
+    this.hasQueuedShot = false;
+}
+
+function RotateToDestination() {
+    var rotationDifference = this.rotation - this.desiredRotation;
+
+    if (Math.abs(rotationDifference) < 0.05) {
+        this.rotation = this.desiredRotation;
+    }
+    else if (rotationDifference > 0) {
+        this.rotation -= 0.03;
+    }
+    else {
+        this.rotation += 0.03;
+    }
 }
 
 function ShotHit() {
@@ -92,6 +118,15 @@ function ShotHit() {
 }
 
 function Update(otherPlayer, platforms) {
+
+    if (this.hasQueuedShot) {
+        if (this.rotation == this.desiredRotation) {
+            this.Shoot();
+        }
+        else {
+            this.RotateToDestination();
+        }
+    }
 
     if (this.shots != null && this.shots.length > 0) {
 
@@ -110,8 +145,8 @@ function Update(otherPlayer, platforms) {
                 continue;
             }
 
-            // we hit the ground
-            if (this.game.physics.arcade.overlap(this.shots[i], platforms)) {
+            // we hit the ground and the shot was travelling downward
+            if (this.shots[i].body.velocity.y > 0 && this.game.physics.arcade.overlap(this.shots[i], platforms)) {
                 this.shots[i].kill();
                 this.shots.splice(i, 1);
                 continue;
