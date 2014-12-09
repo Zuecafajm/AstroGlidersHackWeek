@@ -3,6 +3,11 @@ window.AstroGliders = window.AstroGliders || {};
 var gameWidth = 1280;
 var gameHeight = 720;
 
+ActionTypeEnum = {
+    PlayerConnect : "PlayerConnect",
+    PlayerShoot : "PlayerShoot"
+}
+
 game = function () {
     var game;
     var platforms;
@@ -29,84 +34,85 @@ game = function () {
 
         //  The score
         // scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
-        FindArena();
+        FindMatch();
     }
 
-    function FindArena() {
-        // search for an arena
-        var arenas = Arenas.find({ playerCount: 1 });
+    function FindMatch() {
+        // search for an match
+        var matches = Matches.find({ playerCount: 1 });
 
-        if (null == arenas || arenas.fetch().length == 0) {
-            // we don't find an already open arena, create one
-            Arenas.insert({ playerCount: 0, activePlayerId : 0, players : [] });
-            arenas = Arenas.find({ playerCount: 0 });
+        if (null == matches || matches.fetch().length == 0) {
+            // we don't find an already open match, create one
+            Matches.insert({ playerCount: 0, activePlayerId: 0, players: [] });
+            matches = Matches.find({ playerCount: 0 });
             
             console.log("didn't find one");
         }
 
-        var arena = arenas.fetch()[0];
+        var match = matches.fetch()[0];
 
-        Arenas.find({ _id: arena._id }).observe({ changed: ArenaChanged(arena._id) });
+        Actions.find({ matchId: match._id }).observe({ added: function (item) { ActionOccured(match._id, item) } });
 
-        arena.playerCount++;
+        match.playerCount++;
 
         var player;
 
-        if (arena.playerCount == 1) {
-            player = SetupPlayerDB(arena, "Stu", true);
+        if (match.playerCount == 1) {
+            player = SetupPlayerDB(match, "Stu", true);
         }
         else {
-            player = SetupPlayerDB(arena, "Aaron", false);
+            player = SetupPlayerDB(match, "Aaron", false);
         }
 
-        console.log("Number of players in the arena: " + arena.playerCount.toString());
+        console.log("Number of players in the match: " + match.playerCount.toString());
 
-        arena.players.push(player);
+        match.players.push(player);
 
-        Arenas.update({ _id: arena._id }, { $set: { playerCount: arena.playerCount, players: arena.players } });
+        Matches.update({ _id: match._id }, { $set: { playerCount: match.playerCount, players: match.players } });
+        Actions.insert({ matchId: match._id, actionType: ActionTypeEnum.PlayerConnet });
     }
 
-    function SetupPlayerDB(arena, playerName, turn) {
+    function SetupPlayerDB(match, playerName, turn) {
         player = Players.findOne({ name: playerName });
 
         if (player == null) {
             // player wasn't found, add to the database
-            player = Players.insert({ name: playerName, playerNumber: arena.playerCount, playersTurn: turn });
+            player = Players.insert({ name: playerName, playerNumber: match.playerCount, playersTurn: turn });
         }
         else {
             // player's already in the database, modify record with new game
-            Players.update({ _id: player._id }, { $set: { name: playerName, playerNumber: arena.playerCount, playersTurn: turn } });
+            Players.update({ _id: player._id }, { $set: { name: playerName, playerNumber: match.playerCount, playersTurn: turn } });
         }
 
         return player;
     }
 
-    function ArenaChanged(arenaId) {
+    function ActionOccured(matchId, actionItem) {
         
-        console.log("Arena changed: " + arenaId);
+        console.log("Action occured, match id: " + matchId);
 
-        var arena = Arenas.find({ _id: arenaId }).fetch()[0];
+        var match = Matches.find({ _id : matchId }).fetch()[0];
 
-        if (arena.playerCount == 1) {
+        if (match.playerCount == 1) {
             // only have one player, throw up a message about waiting for the other
 
             waitingForPlayerText = game.add.text(16, 16, 'Waiting for other player to join', { fontSize: '32px', fill: '#000' });
         }
-        else if (arena.playerCount == 2) {
+        else if (match.playerCount == 2) {
             // got two players, start game
 
             waitingForPlayerText = null;
 
             //Meteor.publish("ReadyToPlay", function () { });
 
-            SpawnPlayers(arena);
+            SpawnPlayers(match);
         }
         else {
-            console.log("Somehow we got too many players: " + arena.playerCount.toString());
+            console.log("Somehow we got too many players: " + match.playerCount.toString());
         }
     }
 
-    function SpawnPlayers(arena)
+    function SpawnPlayers(match)
     {
         console.log("Spawn our players");
     }
