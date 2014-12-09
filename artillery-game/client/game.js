@@ -5,7 +5,8 @@ var gameHeight = 720;
 
 ActionTypeEnum = {
     PlayerConnect : "PlayerConnect",
-    PlayerShoot : "PlayerShoot"
+    PlayerShoot: "PlayerShoot",
+    PlayerDisconnect: "PlayerDisconnect"
 }
 
 game = function () {
@@ -16,6 +17,12 @@ game = function () {
     var scoreText;
 
     var waitingForPlayerText;
+    
+    var playerId;
+    var playerTank;
+    var otherPlayerTank;
+
+    var gameStarted;
 
     function preload() {
         game.load.image('ground', '/assets/platform.png');
@@ -45,79 +52,31 @@ game = function () {
             // we don't find an already open match, create one
             Matches.insert({ playerCount: 0, activePlayerId: 0, players: [] });
             matches = Matches.find({ playerCount: 0 });
-            
-            console.log("didn't find one");
         }
 
         var match = matches.fetch()[0];
 
-        Actions.find({ matchId: match._id }).observe({ added: function (item) { ActionOccured(match._id, item) } });
+        Actions.find({ matchId: match._id }).observe({ added: function (item) { ActionOccured(match._id, item.actionType) } });
 
         match.playerCount++;
 
         var player;
 
         if (match.playerCount == 1) {
-            player = SetupPlayerDB(match, "Stu", true);
+            player = SetupPlayerDB(1, match, "Stu", true);
         }
         else {
-            player = SetupPlayerDB(match, "Aaron", false);
+            player = SetupPlayerDB(2, match, "Aaron", false);
         }
 
-        console.log("Number of players in the match: " + match.playerCount.toString());
-
+        playerId = player._id;
         match.players.push(player);
 
         Matches.update({ _id: match._id }, { $set: { playerCount: match.playerCount, players: match.players } });
-        Actions.insert({ matchId: match._id, actionType: ActionTypeEnum.PlayerConnet });
+        Actions.insert({ matchId: match._id, actionType: ActionTypeEnum.PlayerConnect });
     }
 
-    function SetupPlayerDB(match, playerName, turn) {
-        player = Players.findOne({ name: playerName });
-
-        if (player == null) {
-            // player wasn't found, add to the database
-            player = Players.insert({ name: playerName, playerNumber: match.playerCount, playersTurn: turn });
-        }
-        else {
-            // player's already in the database, modify record with new game
-            Players.update({ _id: player._id }, { $set: { name: playerName, playerNumber: match.playerCount, playersTurn: turn } });
-        }
-
-        return player;
-    }
-
-    function ActionOccured(matchId, actionItem) {
-        
-        console.log("Action occured, match id: " + matchId);
-
-        var match = Matches.find({ _id : matchId }).fetch()[0];
-
-        if (match.playerCount == 1) {
-            // only have one player, throw up a message about waiting for the other
-
-            waitingForPlayerText = game.add.text(16, 16, 'Waiting for other player to join', { fontSize: '32px', fill: '#000' });
-        }
-        else if (match.playerCount == 2) {
-            // got two players, start game
-
-            waitingForPlayerText = null;
-
-            //Meteor.publish("ReadyToPlay", function () { });
-
-            SpawnPlayers(match);
-        }
-        else {
-            console.log("Somehow we got too many players: " + match.playerCount.toString());
-        }
-    }
-
-    function SpawnPlayers(match)
-    {
-        console.log("Spawn our players");
-    }
-
-    function CreatePlayer()
+    function SetupPlayerDB(playerNumber, match, playerName, turn) 
     {
         var posY = gameHeight - 150;
 
@@ -133,13 +92,72 @@ game = function () {
             rotation = Math.PI / 2;
         }
 
-        players = AstroGliders.Tank(posX, posY, rotation, game);
+        player = Players.findOne({ name: playerName });
+
+        if (player == null) {
+            // player wasn't found, add to the database
+            player = Players.insert({ name: playerName, positionX: posX, positionY: posY, rotation: rotation, playerNumber: match.playerCount, playersTurn: turn });
+        }
+        else {
+            // player's already in the database, modify record with new game
+            Players.update({ _id: player._id }, { $set: { name: playerName, positionX: posX, positionY: posY, rotation: rotation, playerNumber: match.playerCount, playersTurn: turn } });
+        }
+
+        return player;
     }
 
+    function PlayerConnect(match) {
+        if (match.playerCount == 1) {
+            // only have one player, throw up a message about waiting for the other
 
+            waitingForPlayerText = game.add.text(16, 16, 'Waiting for other player to join', { fontSize: '32px', fill: '#000' });
+        }
+        else if (match.playerCount == 2) {
+            // got two players, start game
 
-    function StartGame() {
-        console.log("starting game");
+            game.world.remove(waitingForPlayerText);
+
+            //Meteor.publish("ReadyToPlay", function () { });
+
+            SpawnPlayers(match);
+        }
+        else {
+            console.log("Somehow we got too many players: " + match.playerCount.toString());
+        }
+    }
+
+    function ActionOccured(matchId, actionItem) {
+        
+        console.log("Action occured: + " + ActionTypeEnum[actionItem] + ", match id: " + matchId);        
+
+        var match = Matches.find({ _id : matchId }).fetch()[0];
+        
+        if (actionItem == ActionTypeEnum.PlayerConnect) {
+            PlayerConnect(match);
+        }
+    }
+
+    function SpawnPlayers(match)
+    {
+        console.log("Spawn our players");
+        
+        match.players.forEach(function (entry) {
+            if (entry._id == player._id) {
+                // this is our current player
+                console.log("Current Player is " + entry.name);
+
+                playerTank = AstroGliders.Tank(true, entry.positionX, entry.positionY, entry.rotation, game);                
+            }
+            else {
+                // this is the other player being represented on the client
+                console.log("Other player is " + entry.name);
+
+                otherPlayerTank = AstroGliders.Tank(false, entry.positionX, entry.positionY, entry.rotation, game);
+            }
+        });
+
+        console.log("Game Started");
+        gameStarted = true;
     }
 
     function SetupWorld() {
@@ -169,12 +187,12 @@ game = function () {
 
     function update() {
 
-        //  Collide the player and the stars with the platforms
-        //game.physics.arcade.collide(player1, platforms);
-        //game.physics.arcade.collide(player2, platforms);
+        if (gameStarted)
+            playerTank.Update(otherPlayerTank, platforms);
 
-        //player1.Update(player2, platforms);
-        //player2.Update(player1, platforms);
+        //  Collide the player and the stars with the platforms
+        game.physics.arcade.collide(playerTank, platforms);
+        game.physics.arcade.collide(otherPlayerTank, platforms);
     }
 
     /**

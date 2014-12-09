@@ -1,6 +1,6 @@
 window.AstroGliders = window.AstroGliders || {};
 
-AstroGliders.Tank = function (x, y, rotation, game) {
+AstroGliders.Tank = function (isPlayer, x, y, rotation, game) {
     // The player and its settings
     tank = game.add.sprite(x, y, 'diamond');
     tank.anchor.setTo(0.5, 0.5);
@@ -17,12 +17,12 @@ AstroGliders.Tank = function (x, y, rotation, game) {
 
     tank.rotation = rotation;
 
-    tank.fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    tank.fireButton.onDown.add(Fire, tank);
-
-    tank.rotateRight = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
-
-    tank.rotateLeft = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
+    if (isPlayer) {
+        tank.fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+        tank.fireButton.onDown.add(Fire, tank);
+        tank.rotateRight = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
+        tank.rotateLeft = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
+    }
 
     tank.game = game;
 
