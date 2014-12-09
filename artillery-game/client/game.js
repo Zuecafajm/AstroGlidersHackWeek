@@ -38,6 +38,8 @@ game = function () {
     function create() {
         game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 
+        game.stage.disableVisibilityChange = true;
+
         SetupWorld();
 
         //player1 = AstroGliders.Tank(32, game.world.height - 150, -Math.PI / 2, game);
@@ -84,7 +86,7 @@ game = function () {
 
     function SetupPlayerDB(playerNumber, match, playerName, turn) 
     {
-        var posY = gameHeight - 150;
+        var posY = game.world.height - 78;
 
         var posX;
         var rotation;
@@ -116,7 +118,8 @@ game = function () {
         if (match.playerCount == 1) {
             // only have one player, throw up a message about waiting for the other
 
-            waitingForPlayerText = game.add.text(16, 16, 'Waiting for other player to join', { fontSize: '32px', fill: '#000' });
+            waitingForPlayerText = game.add.text(gameWidth / 2, gameHeight / 2, 'Waiting for other player to join', { fontSize: '32px', fill: '#000' });
+            waitingForPlayerText.anchor.setTo(0.5, 0.5);
         }
         else if (match.playerCount == 2) {
             // got two players, start game
@@ -142,7 +145,7 @@ game = function () {
         }
         else if (actionItem.actionType == ActionTypeEnum.PlayerShoot) {
             if (actionItem.playerId != playerId) {
-                otherPlayerTank.Shoot(actionItem.velocity);
+                otherPlayerTank.Shoot(actionItem.velocity, actionItem.rotation);
                 playerTank.active = true;
             }
         }

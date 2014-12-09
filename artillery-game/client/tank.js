@@ -12,7 +12,6 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
 
     //  Player physics properties. Give the little guy a slight bounce.
     tank.body.bounce.y = 0.2;
-    tank.body.gravity.y = 300;
     tank.body.collideWorldBounds = true;
 
     tank.rotation = rotation;
@@ -62,13 +61,13 @@ function Fire() {
 
         shot.body.velocity.set(shotVelocity.x, shotVelocity.y);
 
-        Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: shotVelocity });
+        Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: shotVelocity, rotation : this.rotation });
 
         this.active = false;
     }
 }
 
-function Shoot(velocity) {
+function Shoot(velocity, tankRotation) {
     shot = this.game.add.sprite(this.x, this.y, 'star');
 
     this.shots.push(shot);
@@ -82,6 +81,8 @@ function Shoot(velocity) {
     shot.body.gravity.y = 200;
 
     shot.enableBody = true;
+
+    this.rotation = tankRotation;
 
     shot.body.velocity.set(velocity.x, velocity.y);
 }
