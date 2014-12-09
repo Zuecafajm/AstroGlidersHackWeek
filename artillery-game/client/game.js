@@ -16,11 +16,14 @@ game = function () {
     var score = 0;
     var scoreText;
 
+    var isMyTurn;
     var waitingForPlayerText;
     
+    var matchId;
     var playerId;
     var playerTank;
-    var otherPlayerTank;
+
+    var playersTurnId;
 
     var gameStarted;
 
@@ -56,7 +59,9 @@ game = function () {
 
         var match = matches.fetch()[0];
 
-        Actions.find({ matchId: match._id }).observe({ added: function (item) { ActionOccured(match._id, item.actionType) } });
+        matchId = match._id;
+
+        Actions.find({ matchId: match._id }).observe({ added: function (item) { ActionOccured(match._id, item) } });
 
         match.playerCount++;
 
@@ -73,7 +78,7 @@ game = function () {
         match.players.push(player);
 
         Matches.update({ _id: match._id }, { $set: { playerCount: match.playerCount, players: match.players } });
-        Actions.insert({ matchId: match._id, actionType: ActionTypeEnum.PlayerConnect });
+        Actions.insert({ matchId: matchId, actionType: ActionTypeEnum.PlayerConnect });
     }
 
     function SetupPlayerDB(playerNumber, match, playerName, turn) 
@@ -128,12 +133,17 @@ game = function () {
 
     function ActionOccured(matchId, actionItem) {
         
-        console.log("Action occured: + " + ActionTypeEnum[actionItem] + ", match id: " + matchId);        
-
-        var match = Matches.find({ _id : matchId }).fetch()[0];
-        
-        if (actionItem == ActionTypeEnum.PlayerConnect) {
+        console.log("Action occured: + " + ActionTypeEnum[actionItem.actionType] + ", match id: " + matchId);        
+                
+        if (actionItem.actionType == ActionTypeEnum.PlayerConnect) {
+            var match = Matches.find({ _id: matchId }).fetch()[0];
             PlayerConnect(match);
+        }
+        else if (actionItem.actionType == ActionTypeEnum.PlayerShoot) {
+            if (actionItem.playerId != playerId) {
+                otherPlayerTank.Shoot(actionItem.velocity);
+                playerTank.active = true;
+            }
         }
     }
 
@@ -141,18 +151,30 @@ game = function () {
     {
         console.log("Spawn our players");
         
+        var setActivePlayer = true;
+
         match.players.forEach(function (entry) {
             if (entry._id == player._id) {
                 // this is our current player
                 console.log("Current Player is " + entry.name);
 
-                playerTank = AstroGliders.Tank(true, entry.positionX, entry.positionY, entry.rotation, game);                
+                playerTank = AstroGliders.Tank(true, entry.positionX, entry.positionY, entry.rotation, game, matchId, playerId);                
             }
             else {
                 // this is the other player being represented on the client
                 console.log("Other player is " + entry.name);
 
-                otherPlayerTank = AstroGliders.Tank(false, entry.positionX, entry.positionY, entry.rotation, game);
+                otherPlayerTank = AstroGliders.Tank(false, entry.positionX, entry.positionY, entry.rotation, game, matchId, playerId);
+            }
+
+            if (setActivePlayer) {
+                Matches.update({ _id: match._id }, { $set: { activePlayerId: entry._id } });
+
+                if (entry._id == playerId) {
+                    playerTank.active = true;
+                }
+
+                setActivePlayer = false;
             }
         });
 
@@ -187,12 +209,14 @@ game = function () {
 
     function update() {
 
-        if (gameStarted)
+        if (gameStarted) {
             playerTank.Update(otherPlayerTank, platforms);
-
-        //  Collide the player and the stars with the platforms
-        game.physics.arcade.collide(playerTank, platforms);
-        game.physics.arcade.collide(otherPlayerTank, platforms);
+            otherPlayerTank.Update(playerTank, platforms);
+            
+            //  Collide both players with the platforms
+            game.physics.arcade.collide(playerTank, platforms);
+            game.physics.arcade.collide(otherPlayerTank, platforms);
+        }
     }
 
     /**

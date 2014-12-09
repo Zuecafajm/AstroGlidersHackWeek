@@ -1,6 +1,6 @@
 window.AstroGliders = window.AstroGliders || {};
 
-AstroGliders.Tank = function (isPlayer, x, y, rotation, game) {
+AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId) {
     // The player and its settings
     tank = game.add.sprite(x, y, 'diamond');
     tank.anchor.setTo(0.5, 0.5);
@@ -27,15 +27,46 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game) {
     tank.game = game;
 
     tank.Update = Update;
+    tank.Shoot = Shoot;
 
     tank.shots = [];
+
+    tank.active = false;
+
+    tank.matchId = matchId;
+    tank.playerId = playerId;
 
     return tank;
 }
 AstroGliders.Tank.prototype = new AstroGliders.Tank;
 
 function Fire() {
+    if (this.active) {
+        shot = this.game.add.sprite(this.x, this.y, 'star');
 
+        this.shots.push(shot);
+
+        shot.outOfBoundsKill = true;
+
+        shot.anchor.setTo(0.5, 0.5);
+
+        this.game.physics.arcade.enable(shot);
+
+        shot.body.gravity.y = 200;
+
+        shot.enableBody = true;
+
+        var shotVelocity = new Phaser.Point(Math.cos(this.rotation + Math.PI / 2.0) * 500, Math.sin(this.rotation + Math.PI / 2.0) * 500);
+
+        shot.body.velocity.set(shotVelocity.x, shotVelocity.y);
+
+        Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: shotVelocity });
+
+        this.active = false;
+    }
+}
+
+function Shoot(velocity) {
     shot = this.game.add.sprite(this.x, this.y, 'star');
 
     this.shots.push(shot);
@@ -50,7 +81,7 @@ function Fire() {
 
     shot.enableBody = true;
 
-    shot.body.velocity.set(Math.cos(this.rotation + Math.PI / 2.0) * 500, Math.sin(this.rotation + Math.PI / 2.0) * 500);
+    shot.body.velocity.set(velocity.x, velocity.y);
 }
 
 function ShotHit() {
@@ -92,10 +123,12 @@ function Update(otherPlayer, platforms) {
         }
     }
 
-    if (this.rotateRight.isDown) {
-        this.body.rotation -= 1;
-    }
-    if (this.rotateLeft.isDown) {
-        this.body.rotation += 1;
+    if (this.active) {
+        if (this.rotateRight.isDown) {
+            this.body.rotation -= 1;
+        }
+        if (this.rotateLeft.isDown) {
+            this.body.rotation += 1;
+        }
     }
 }
