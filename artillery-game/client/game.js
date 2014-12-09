@@ -56,7 +56,7 @@ game = function () {
 
         if (null == matches || matches.fetch().length == 0) {
             // we don't find an already open match, create one
-            Matches.insert({ playerCount: 0, activePlayerId: 0, players: [] });
+            Matches.insert({ playerCount: 0, players: [] });
             matches = Matches.find({ playerCount: 0 });
         }
 
@@ -145,8 +145,8 @@ game = function () {
         }
         else if (actionItem.actionType == ActionTypeEnum.PlayerShoot) {
             if (actionItem.playerId != playerId) {
-                otherPlayerTank.RotateAndShoot(actionItem.velocity, actionItem.rotation);
-                playerTank.active = true;
+                otherPlayerTank.RotateTo(actionItem.rotation);
+                otherPlayerTank.SetShotVelocity(actionItem.velocity);
             }
         }
         else if (actionItem.actionType == ActionTypeEnum.GameOver) {
@@ -192,8 +192,6 @@ game = function () {
     {
         console.log("Spawn our players");
         
-        var setActivePlayer = true;
-
         match.players.forEach(function (entry) {
             if (entry._id == player._id) {
                 // this is our current player
@@ -206,16 +204,6 @@ game = function () {
                 console.log("Other player is " + entry.name);
 
                 otherPlayerTank = AstroGliders.Tank(false, entry.positionX, entry.positionY, entry.rotation, game, matchId, playerId);
-            }
-
-            if (setActivePlayer) {
-                Matches.update({ _id: match._id }, { $set: { activePlayerId: entry._id } });
-
-                if (entry._id == playerId) {
-                    playerTank.active = true;
-                }
-
-                setActivePlayer = false;
             }
         });
 
@@ -253,6 +241,15 @@ game = function () {
         if (gameStarted) {
             playerTank.Update(otherPlayerTank, platforms);
             otherPlayerTank.Update(playerTank, platforms);
+
+            if (playerTank.hasQueuedShot && otherPlayerTank.hasQueuedShot && !otherPlayerTank.shouldRotate) {
+                playerTank.Shoot();
+                otherPlayerTank.Shoot();
+            }
+
+            if (playerTank.shots.length == 0 && otherPlayerTank.shots.length == 0) {
+                playerTank.active = true;
+            }
             
             //  Collide both players with the platforms
             game.physics.arcade.collide(playerTank, platforms);

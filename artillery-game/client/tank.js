@@ -23,23 +23,24 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
         tank.fireButton.onDown.add(Fire, tank);
         tank.rotateRight = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
         tank.rotateLeft = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
+        tank.active = true;
     }
 
     tank.game = game;
 
     tank.Update = Update;
     tank.Shoot = Shoot;
-    tank.RotateAndShoot = RotateAndShoot;
+    tank.RotateTo = RotateTo;
+    tank.SetShotVelocity = SetShotVelocity;
     tank.RotateToDestination = RotateToDestination;
 
     tank.shots = [];
-
-    tank.active = false;
 
     tank.matchId = matchId;
     tank.playerId = playerId;
 
     tank.hasQueuedShot = false;
+    tank.shouldRotate = false;
 
     return tank;
 }
@@ -47,44 +48,30 @@ AstroGliders.Tank.prototype = new AstroGliders.Tank;
 
 function Fire() {
     if (this.active) {
-        shot = this.game.add.sprite(this.x, this.y, 'star');
-
-        this.shots.push(shot);
-
-        shot.outOfBoundsKill = true;
-
-        shot.anchor.setTo(0.5, 0.5);
-
-        this.game.physics.arcade.enable(shot);
-
-        shot.body.gravity.y = 200;
-
-        shot.enableBody = true;
-
-        var shotVelocity = new Phaser.Point(Math.cos(this.rotation + Math.PI / 2.0) * 500, Math.sin(this.rotation + Math.PI / 2.0) * 500);
-
-        shot.body.velocity.set(shotVelocity.x, shotVelocity.y);
+        this.desiredShotVelocity = new Phaser.Point(Math.cos(this.rotation + Math.PI / 2.0) * 500, Math.sin(this.rotation + Math.PI / 2.0) * 500);
 
         this.hasQueuedShot = true;
-        Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: shotVelocity, rotation: this.rotation });
+        Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: this.desiredShotVelocity, rotation: this.rotation });
 
         this.active = false;
     }
 }
 
-function RotateAndShoot(velocity, tankRotation) {
-    this.hasQueuedShot = true;
+function RotateTo(tankRotation) {
+    this.shouldRotate = true;
 
     this.desiredRotation = tankRotation;
-    this.desiredShotVelocity = velocity;
+}
+
+function SetShotVelocity(shotVelocity) {
+    this.desiredShotVelocity = shotVelocity;
+    this.hasQueuedShot = true;
 }
 
 function Shoot() {
     shot = this.game.add.sprite(this.x, this.y, 'star');
 
     this.shots.push(shot);
-
-    shot.outOfBoundsKill = true;
 
     shot.anchor.setTo(0.5, 0.5);
 
@@ -104,6 +91,7 @@ function RotateToDestination() {
 
     if (Math.abs(rotationDifference) < 0.05) {
         this.rotation = this.desiredRotation;
+        this.shouldRotate = false;
     }
     else if (rotationDifference > 0) {
         this.rotation -= 0.03;
@@ -119,13 +107,8 @@ function ShotHit() {
 
 function Update(otherPlayer, platforms) {
 
-    if (this.hasQueuedShot) {
-        if (this.rotation == this.desiredRotation) {
-            this.Shoot();
-        }
-        else {
-            this.RotateToDestination();
-        }
+    if (this.shouldRotate) {
+        this.RotateToDestination();
     }
 
     if (this.shots != null && this.shots.length > 0) {
@@ -146,7 +129,8 @@ function Update(otherPlayer, platforms) {
             }
 
             // we hit the ground and the shot was travelling downward
-            if (this.shots[i].body.velocity.y > 0 && this.game.physics.arcade.overlap(this.shots[i], platforms)) {
+            if ((this.shots[i].body.velocity.y > 0 && this.game.physics.arcade.overlap(this.shots[i], platforms))
+                || this.shots[i].position.y > 720) {
                 this.shots[i].kill();
                 this.shots.splice(i, 1);
                 continue;
