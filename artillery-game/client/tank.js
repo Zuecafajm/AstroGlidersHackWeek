@@ -15,14 +15,22 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
     tank.body.collideWorldBounds = true;
 
     tank.rotation = rotation;
+    tank.power = 100;
 
     tank.isPlayer = isPlayer;
 
     if (isPlayer) {
         tank.fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         tank.fireButton.onDown.add(Fire, tank);
-        tank.rotateRight = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
-        tank.rotateLeft = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
+        tank.rotateRight = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
+        tank.rotateLeft = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
+
+        tank.powerUp = game.input.keyboard.addKey(Phaser.Keyboard.UP);
+        tank.powerDown = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
+
+        tank.powerText = game.add.text(16, 16, 'Power: ' + (tank.power).toString(), { fontSize: '32px', fill: '#000' });
+        tank.angleText = game.add.text(16, 48, 'Angle: ' + (Math.round(((tank.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
+
         tank.active = true;
     }
 
@@ -43,14 +51,13 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
     tank.hasQueuedShot = false;
     tank.shouldRotate = false;
     tank.isRotating = false;
-
     return tank;
 }
 AstroGliders.Tank.prototype = new AstroGliders.Tank;
 
 function Fire() {
     if (this.active) {
-        this.desiredShotVelocity = new Phaser.Point(Math.cos(this.rotation + Math.PI / 2.0) * 500, Math.sin(this.rotation + Math.PI / 2.0) * 500);
+        this.desiredShotVelocity = new Phaser.Point(Math.cos(this.rotation + Math.PI / 2.0) * this.power * 5, Math.sin(this.rotation + Math.PI / 2.0) * this.power * 5);
 
         this.hasQueuedShot = true;
         Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: this.desiredShotVelocity, rotation: this.rotation });
@@ -169,11 +176,26 @@ function Update(otherPlayer, platforms) {
     }
 
     if (this.active) {
+        if (this.powerUp.isDown && this.power < 150) {
+            this.power += 1;
+            this.game.world.remove(this.powerText);
+            this.powerText = this.game.add.text(16, 16, 'Power: ' + (this.power).toString(), { fontSize: '32px', fill: '#000' });
+        }
+        if (this.powerDown.isDown && this.power > 1) {
+            this.power -= 1;
+            this.game.world.remove(this.powerText);
+            this.powerText = this.game.add.text(16, 16, 'Power: ' + (this.power).toString(), { fontSize: '32px', fill: '#000' });
+        }
+
         if (this.rotateRight.isDown) {
             this.body.rotation -= 1;
+            this.game.world.remove(this.angleText);
+            this.angleText = this.game.add.text(16, 48, 'Angle: ' + (Math.round(((this.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
         }
         if (this.rotateLeft.isDown) {
             this.body.rotation += 1;
+            this.game.world.remove(this.angleText);
+            this.angleText = this.game.add.text(16, 48, 'Angle: ' + (Math.round(((this.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
         }
     }
 }
