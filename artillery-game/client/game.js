@@ -31,7 +31,7 @@ game = function () {
     function preload() {
         game.load.image('ground', '/assets/platform.png');
         game.load.image('sky', '/assets/sky.png');
-        game.load.image('star', '/assets/star.png');
+        game.load.image('star', '/assets/cat.png');
         game.load.image('diamond', '/assets/diamond.png');
     }
 
@@ -41,9 +41,6 @@ game = function () {
         game.stage.disableVisibilityChange = true;
 
         SetupWorld();
-
-        //player1 = AstroGliders.Tank(32, game.world.height - 150, -Math.PI / 2, game);
-        //player2 = AstroGliders.Tank(1200, game.world.height - 150, Math.PI / 2, game);
 
         //  The score
         // scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });

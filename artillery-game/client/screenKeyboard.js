@@ -11,5 +11,5 @@ screenKeyboard = function (game)
     //    displayText.text += String.fromCharCode(e.keyCode);
     //}
 
-    window.prompt("Enter your name", "Steve");
+    //window.prompt("Enter your name", "Steve");
 }
