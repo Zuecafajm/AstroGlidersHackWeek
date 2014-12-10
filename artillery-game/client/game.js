@@ -4,10 +4,11 @@ var gameWidth = 1280;
 var gameHeight = 720;
 
 ActionTypeEnum = {
-    PlayerConnect : "PlayerConnect",
+    PlayerConnect: "PlayerConnect",
     PlayerShoot: "PlayerShoot",
     PlayerDisconnect: "PlayerDisconnect",
-    GameOver: "GameOver"
+    GameOver: "GameOver",
+    NewMatch: "NewMatch"
 }
 
 game = function () {
@@ -18,8 +19,9 @@ game = function () {
     var scoreText;
 
     var isMyTurn;
+    var gameOverText;
     var waitingForPlayerText;
-    
+
     var matchId;
     var playerId;
     var playerTank;
@@ -27,6 +29,7 @@ game = function () {
     var playersTurnId;
 
     var gameStarted;
+    var otherPlayerDone;
 
     function preload() {
         game.load.image('ground', '/assets/platform.png');
@@ -80,8 +83,7 @@ game = function () {
         Actions.insert({ matchId: matchId, actionType: ActionTypeEnum.PlayerConnect });
     }
 
-    function SetupPlayerDB(playerNumber, match, playerName, turn) 
-    {
+    function SetupPlayerDB(playerNumber, match, playerName, turn) {
         var posY = game.world.height - 78;
 
         var posX;
@@ -124,7 +126,7 @@ game = function () {
 
             //Meteor.publish("ReadyToPlay", function () { });
 
-            SpawnPlayers(match);
+            SpawnPlayers(match.players);
         }
         else {
             console.log("Somehow we got too many players: " + match.playerCount.toString());
@@ -132,9 +134,9 @@ game = function () {
     }
 
     function ActionOccured(matchId, actionItem) {
-        
-        console.log("Action occured: + " + ActionTypeEnum[actionItem.actionType] + ", match id: " + matchId);        
-                
+
+        console.log("Action occured: + " + ActionTypeEnum[actionItem.actionType] + ", match id: " + matchId);
+
         if (actionItem.actionType == ActionTypeEnum.PlayerConnect) {
             var match = Matches.find({ _id: matchId }).fetch()[0];
             PlayerConnect(match);
@@ -146,54 +148,90 @@ game = function () {
             }
         }
         else if (actionItem.actionType == ActionTypeEnum.GameOver) {
-            // did we win?
-            if (actionItem.winningPlayerId == playerId) {
-                Win();
-            }
-
-            // did another player win?
-            else if (actionItem.winningPlayerId != "") {
-                Actions.update({ _id: actionItem._id }, { $set: { losingPlayerId: playerId } });
-                Lose();
-            }
-
-            // did we lose?
-            else if (actionItem.losingPlayerId == playerId) {
-                Lose();
-            }
-
-            // did another player lose?
-            else if (actionItem.losingPlayerId != "") {
-                Actions.update({_id : actionItem._id}, { $set : { winningPlayerId : playerId } });
-                Win();
-            }
-
-            else {
-                console.log("We finished the game with nobody winning. This isn't right");
+            if (actionItem.playerId != playerId) {
+                if (!gameStarted) {
+                    window.setTimeout(Restart, 3000);
+                }
+                else {
+                    otherPlayerDone = true;
+                }
             }
         }
     }
 
+    function Cleanup() {
+        game.world.remove(playerTank);
+        game.world.remove(otherPlayerTank);
+        game.world.remove(playerTank.powerText);
+        game.world.remove(playerTank.angleText);
+
+        game.world.remove(waitingForPlayerText);
+        game.world.remove(gameOverText);
+    }
+
+    function Restart() {
+
+        Cleanup();
+
+        match = Matches.find({ _id: matchId }).fetch()[0];
+        
+        players = [];
+        players.push(SetupPlayerDB(1, match, "Stu", player.name == "Stu"));
+        players.push(SetupPlayerDB(2, match, "Aaron", player.name == "Aaron"));
+
+        match.players = players;
+
+        Matches.update({ _id: matchId }, { $set: { players: players } });
+                
+        SpawnPlayers(players);
+
+        gameStarted = true;
+    }
+
     function Win() {
-        var gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'YOU WIN', { fontSize: '32px', fill: '#000' });
+        gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'YOU WIN', { fontSize: '32px', fill: '#000' });
         gameOverText.anchor.setTo(0.5, 0.5);
+        gameStarted = false;
+
+        if (otherPlayerDone) {
+            window.setTimeout(Restart, 3000);
+        }
     }
 
     function Lose() {
-        var gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'YOU LOSE', { fontSize: '32px', fill: '#000' });
+        gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'YOU LOSE', { fontSize: '32px', fill: '#000' });
         gameOverText.anchor.setTo(0.5, 0.5);
+        gameStarted = false;
+
+        if (otherPlayerDone) {
+            window.setTimeout(Restart, 3000);
+        }
     }
 
-    function SpawnPlayers(match)
-    {
+    function Draw() {
+        gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'EVERYONE\'S A WINNER', { fontSize: '32px', fill: '#000' });
+        gameOverText.anchor.setTo(0.5, 0.5);
+        gameStarted = false;
+
+        if (otherPlayerDone) {
+            window.setTimeout(Restart, 3000);
+        }
+    }
+
+    function SetWaitingForPlayerText() {
+        waitingForPlayerText = game.add.text(gameWidth / 2, gameHeight / 2, 'Waiting for other player to finish their game', { fontSize: '32px', fill: '#000' });
+        waitingForPlayerText.anchor.setTo(0.5, 0.5);
+    }
+
+    function SpawnPlayers(players) {
         console.log("Spawn our players");
-        
-        match.players.forEach(function (entry) {
-            if (entry._id == player._id) {
+
+        players.forEach(function (entry) {
+            if (entry._id == playerId) {
                 // this is our current player
                 console.log("Current Player is " + entry.name);
 
-                playerTank = AstroGliders.Tank(true, entry.positionX, entry.positionY, entry.rotation, game, matchId, playerId);                
+                playerTank = AstroGliders.Tank(true, entry.positionX, entry.positionY, entry.rotation, game, matchId, playerId);
             }
             else {
                 // this is the other player being represented on the client
@@ -233,7 +271,6 @@ game = function () {
     }
 
     function update() {
-
         if (gameStarted) {
             playerTank.Update(otherPlayerTank, platforms);
             otherPlayerTank.Update(playerTank, platforms);
@@ -246,13 +283,38 @@ game = function () {
                 otherPlayerTank.Shoot();
             }
 
-            if (playerTank.shots.length == 0 && otherPlayerTank.shots.length == 0) {
-                playerTank.active = true;
-            }
-            
+            GoToGameOverOrNextTurn();
+
             //  Collide both players with the platforms
             game.physics.arcade.collide(playerTank, platforms);
             game.physics.arcade.collide(otherPlayerTank, platforms);
+        }
+    }
+
+    function GoToGameOverOrNextTurn() {
+        if (playerTank.shotCompleted && otherPlayerTank.shotCompleted) {
+            // check if there is a winner
+            if (playerTank.dead || otherPlayerTank.dead) {
+                // tanks killed each other, it is a draw
+                if (playerTank.dead && otherPlayerTank.dead) {
+                    Draw()
+                }
+                else if (playerTank.dead) {
+                    Lose();
+                }
+                else {
+                    Win();
+                }
+
+                playerTank.shotCompleted = false;
+                otherPlayerTank.shotCompleted = false;
+
+                Actions.insert({ matchId: matchId, actionType: ActionTypeEnum.GameOver });
+            }
+                // no winner, go to the next shot
+            else {
+                playerTank.active = true;
+            }
         }
     }
 

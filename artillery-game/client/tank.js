@@ -51,6 +51,10 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
     tank.hasQueuedShot = false;
     tank.shouldRotate = false;
     tank.isRotating = false;
+
+    tank.dead = false;
+    tank.shotCompleted = false;
+
     return tank;
 }
 AstroGliders.Tank.prototype = new AstroGliders.Tank;
@@ -63,6 +67,7 @@ function Fire() {
         Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: this.desiredShotVelocity, rotation: this.rotation });
 
         this.active = false;
+        this.shotCompleted = false;
     }
 }
 
@@ -80,6 +85,7 @@ function SetRotationDestination(tankRotation) {
 function SetShotVelocity(shotVelocity) {
     this.desiredShotVelocity = shotVelocity;
     this.hasQueuedShot = true;
+    this.shotCompleted = false;
 }
 
 function Shoot() {
@@ -138,10 +144,9 @@ function Update(otherPlayer, platforms) {
                 this.shots.splice(i, 1);
                 otherPlayer.kill();
 
-                if (this.isPlayer) {
-                    // this player wins!
-                    Actions.insert({ matchId: this.matchId, actionType: ActionTypeEnum.GameOver, winningPlayerId: this.playerId, losingPlayerId: "" });
-                }
+                otherPlayer.dead = true;
+
+                this.shotCompleted = true;
 
                 continue;
             }
@@ -151,6 +156,9 @@ function Update(otherPlayer, platforms) {
                 || this.shots[i].position.y > 720) {
                 this.shots[i].kill();
                 this.shots.splice(i, 1);
+
+                this.shotCompleted = true;
+
                 continue;
             }
 
@@ -165,10 +173,8 @@ function Update(otherPlayer, platforms) {
                 this.shots[i].kill();
                 this.shots.splice(i, 1);
 
-                if (this.isPlayer) {
-                    // this player loses :(
-                    Actions.insert({ matchId: this.matchId, actionType: ActionTypeEnum.GameOver, winningPlayerId: "", losingPlayerId: this.playerId });
-                }
+                this.dead = true;
+                this.shotCompleted = true;
 
                 continue;
             }
@@ -188,12 +194,12 @@ function Update(otherPlayer, platforms) {
         }
 
         if (this.rotateRight.isDown) {
-            this.body.rotation -= 1;
+            this.rotation -= 0.0174532925;
             this.game.world.remove(this.angleText);
             this.angleText = this.game.add.text(16, 48, 'Angle: ' + (Math.round(((this.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
         }
         if (this.rotateLeft.isDown) {
-            this.body.rotation += 1;
+            this.rotation += 0.0174532925;
             this.game.world.remove(this.angleText);
             this.angleText = this.game.add.text(16, 48, 'Angle: ' + (Math.round(((this.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
         }
