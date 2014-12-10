@@ -37,7 +37,6 @@ game = function () {
 
     function create() {
         game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-
         game.stage.disableVisibilityChange = true;
 
         SetupWorld();
@@ -265,7 +264,7 @@ game = function () {
         * Create game.
         */
         createGame: function () {
-            game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, '',
+            game = new Phaser.Game(gameWidth, gameHeight, Phaser.CANVAS, '',
             {
                 preload: preload,
                 create: create,
