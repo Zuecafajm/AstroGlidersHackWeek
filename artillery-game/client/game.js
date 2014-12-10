@@ -142,7 +142,7 @@ game = function () {
         }
         else if (actionItem.actionType == ActionTypeEnum.PlayerShoot) {
             if (actionItem.playerId != playerId) {
-                otherPlayerTank.RotateTo(actionItem.rotation);
+                otherPlayerTank.SetRotationDestination(actionItem.rotation);
                 otherPlayerTank.SetShotVelocity(actionItem.velocity);
             }
         }
@@ -239,7 +239,10 @@ game = function () {
             playerTank.Update(otherPlayerTank, platforms);
             otherPlayerTank.Update(playerTank, platforms);
 
-            if (playerTank.hasQueuedShot && otherPlayerTank.hasQueuedShot && !otherPlayerTank.shouldRotate) {
+            if (playerTank.hasQueuedShot && otherPlayerTank.hasQueuedShot && otherPlayerTank.shouldRotate) {
+                otherPlayerTank.StartRotating();
+            }
+            else if (playerTank.hasQueuedShot && otherPlayerTank.hasQueuedShot && !otherPlayerTank.isRotating) {
                 playerTank.Shoot();
                 otherPlayerTank.Shoot();
             }

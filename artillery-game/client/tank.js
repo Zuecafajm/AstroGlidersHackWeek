@@ -30,7 +30,8 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
 
     tank.Update = Update;
     tank.Shoot = Shoot;
-    tank.RotateTo = RotateTo;
+    tank.StartRotating = StartRotating;
+    tank.SetRotationDestination = SetRotationDestination;
     tank.SetShotVelocity = SetShotVelocity;
     tank.RotateToDestination = RotateToDestination;
 
@@ -41,6 +42,7 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
 
     tank.hasQueuedShot = false;
     tank.shouldRotate = false;
+    tank.isRotating = false;
 
     return tank;
 }
@@ -57,7 +59,12 @@ function Fire() {
     }
 }
 
-function RotateTo(tankRotation) {
+function StartRotating() {
+    this.shouldRotate = false;
+    this.isRotating = true;
+}
+
+function SetRotationDestination(tankRotation) {
     this.shouldRotate = true;
 
     this.desiredRotation = tankRotation;
@@ -95,7 +102,7 @@ function RotateToDestination() {
 
     if (Math.abs(rotationDifference) < 0.05) {
         this.rotation = this.desiredRotation;
-        this.shouldRotate = false;
+        this.isRotating = false;
     }
     else if (rotationDifference > 0) {
         this.rotation -= 0.03;
@@ -111,7 +118,7 @@ function ShotHit() {
 
 function Update(otherPlayer, platforms) {
 
-    if (this.shouldRotate) {
+    if (this.isRotating) {
         this.RotateToDestination();
     }
 
