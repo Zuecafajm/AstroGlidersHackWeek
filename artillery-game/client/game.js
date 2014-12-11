@@ -25,8 +25,8 @@ game = function () {
     var matchId;
     var playerId;
     var playerTank;
-
     var playerName;
+
     var otherPlayerName;
 
     var playersTurnId;
@@ -85,13 +85,12 @@ game = function () {
         totalScore = 0;
 
         var player;
+        playerName = GetPlayerName();
 
         if (match.playerCount == 1) {
-            playerName = "Stu";
             player = SetupPlayerDB(1, true);
         }
         else {
-            playerName = "Aaron";
             player = SetupPlayerDB(2, false);
         }
 
@@ -106,6 +105,19 @@ game = function () {
 
         Matches.update({ _id: match._id }, { $set: { playerCount: match.playerCount, playerIds: match.playerIds, score: scores } });
         Actions.insert({ matchId: matchId, actionType: ActionTypeEnum.PlayerConnect });
+    }
+
+    function GetPlayerName()
+    {
+        var name = document.getElementById('playername').value;
+
+        if (name == "") {
+            name = "Steve";
+        }
+
+        console.log("Player name is " + name);
+
+        return name;
     }
 
     function SetupPlayerDB(playerNumber, turn) {

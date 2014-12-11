@@ -1,7 +1,31 @@
- <head>
-    <title>artillery-game</title>        
+<head>
+  <meta charset="UTF-8">
+
+  <title>Cat-apult</title>
+
+	<link rel="stylesheet" href="client/lib/style.css" media="screen" type="text/css" />
+
+
+    <script type="text/javascript">
+        function LaunchGame() {
+            if (Meteor.isClient) {
+                var gameCreator = game();
+                gameCreator.createGame();
+            }
+        }
+    </script>
+
 </head>
 
 <body>
-  {{> hello}}
+  <div class="wrap">
+		<div class="avatar">
+      <img src="assets/cat.png">
+		</div>
+		<input id="playername" type="text" placeholder="player name (optional)" required>
+            <div class="bar">
+			<i></i>
+		</div>		
+		<button onclick="LaunchGame()">Play</button>
+	</div>
 </body>

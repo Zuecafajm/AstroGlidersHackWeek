@@ -9,10 +9,7 @@ if (Meteor.isClient) {
 }
 
 function Start() {
-    if (Meteor.isClient) {
-        var gameCreator = game();
-        gameCreator.createGame();
-    }
+    if (Meteor.isClient){}
 }
 
 if (Meteor.isServer) {
