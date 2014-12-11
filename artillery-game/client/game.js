@@ -39,6 +39,8 @@ game = function () {
 
     var totalScore;
 
+    var wall;
+    var wallHeight;
     var wind;
     var snowflakes = [];
     var timeToNextSnowFlake = 0;
@@ -119,7 +121,10 @@ game = function () {
             // player 1 gets to decide the wind for the match
             var maxWind = (20 + 10 * Math.min(totalScore, 8));
             wind = Math.round(Math.random() * maxWind * 2 - maxWind);
-            Matches.update({ _id: matchId }, { $set: { wind: wind } });
+
+            var maxWallHeight = 50 + Math.min(totalScore, 10) * 30;
+            wallHeight = Math.random() * maxWallHeight;
+            Matches.update({ _id: matchId }, { $set: { wind: wind, wallHeight: wallHeight } });
         }
         else {
             posX = gameWidth / 8.0 * 7
@@ -196,6 +201,7 @@ game = function () {
         playerTank.active = false;
         otherPlayerTank.active = false;
 
+        game.world.remove(wall);
         game.world.remove(playerTank);
         game.world.remove(otherPlayerTank);
         game.world.remove(playerTank.powerText);
@@ -299,6 +305,7 @@ game = function () {
         });
 
         wind = match.wind;
+        wallHeight = match.wallHeight;
 
         var ourScore;
         var othersScore;
@@ -311,6 +318,8 @@ game = function () {
                 othersScore = match.score[i].score;
             }
         }
+
+        CreateWall();
 
         totalScore = ourScore + othersScore;
 
@@ -398,6 +407,23 @@ game = function () {
                 playerTank.active = true;
             }
         }
+    }
+
+    function CreateWall() {        
+        // Here we create the ground.
+        wall = game.add.sprite(gameWidth / 2, game.world.height - 64, 'ground');
+
+        wall.anchor.setTo(0.5, 1);
+
+        //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
+        wall.scale.setTo(.1, wallHeight / 32);
+
+        console.log("Created wall with height: " + (wallHeight / 32).toString());
+
+        game.physics.arcade.enable(wall);
+
+        //  This stops it from falling away when you jump on it
+        wall.body.immovable = true;
     }
 
     function Snow() {
