@@ -130,7 +130,7 @@ function ShotHit() {
     console.log("shot hit");
 }
 
-function Update(otherPlayer, platforms) {
+function Update(otherPlayer, platforms, wall) {
 
     if (this.isRotating) {
         this.RotateToDestination();
@@ -152,9 +152,9 @@ function Update(otherPlayer, platforms) {
                 continue;
             }
 
-            // we hit the ground and the shot was travelling downward or the shot went off the bottom of the screen
+            // we hit the ground and the shot was travelling downward or the shot went off the bottom of the screen or hit the wall
             if ((this.shots[i].body.velocity.y > 0 && this.game.physics.arcade.overlap(this.shots[i], platforms))
-                || this.shots[i].position.y > 720) {
+                || this.shots[i].position.y > 720 || this.game.physics.arcade.overlap(this.shots[i], wall)) {
                 this.shots[i].kill();
                 this.shots.splice(i, 1);
 

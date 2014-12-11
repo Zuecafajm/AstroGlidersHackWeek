@@ -361,8 +361,8 @@ game = function () {
 
     function update() {
         if (gameStarted) {
-            playerTank.Update(otherPlayerTank, platforms);
-            otherPlayerTank.Update(playerTank, platforms);
+            playerTank.Update(otherPlayerTank, platforms, wall);
+            otherPlayerTank.Update(playerTank, platforms, wall);
 
             if (playerTank.hasQueuedShot && otherPlayerTank.hasQueuedShot && otherPlayerTank.shouldRotate) {
                 otherPlayerTank.StartRotating();
@@ -417,8 +417,6 @@ game = function () {
 
         //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
         wall.scale.setTo(.1, wallHeight / 32);
-
-        console.log("Created wall with height: " + (wallHeight / 32).toString());
 
         game.physics.arcade.enable(wall);
 
