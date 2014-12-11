@@ -101,6 +101,7 @@ function Shoot() {
 
     this.game.physics.arcade.enable(shot);
 
+    shot.body.gravity.x = this.wind;
     shot.body.gravity.y = 200;
 
     shot.enableBody = true;

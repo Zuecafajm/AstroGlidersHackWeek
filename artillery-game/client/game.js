@@ -33,6 +33,8 @@ game = function () {
     var gameStarted;
     var otherPlayerDone;
 
+    var windText;
+
     function preload() {
         game.load.image('ground', '/assets/platform.png');
         game.load.image('sky', '/assets/sky.png');
@@ -96,6 +98,10 @@ game = function () {
         if (playerNumber == 1) {
             posX = gameWidth / 8.0;
             rotation = -Math.PI / 2;
+
+            // player 1 gets to decide the wind for the match
+            var wind = Math.round(Math.random() * 60 - 30);
+            Matches.update({ _id: matchId }, { $set: { wind: wind } });
         }
         else {
             posX = gameWidth / 8.0 * 7
@@ -177,6 +183,7 @@ game = function () {
         game.world.remove(playerTank.powerText);
         game.world.remove(playerTank.angleText);
 
+        game.world.remove(windText);
         game.world.remove(waitingForPlayerText);
         game.world.remove(gameOverText);
     }
@@ -246,14 +253,19 @@ game = function () {
                 console.log("Current Player is " + entry.name);
 
                 playerTank = AstroGliders.Tank(true, entry.positionX, entry.positionY, entry.rotation, game, matchId, playerId);
+                playerTank.wind = match.wind;
             }
             else {
                 // this is the other player being represented on the client
                 console.log("Other player is " + entry.name);
 
                 otherPlayerTank = AstroGliders.Tank(false, entry.positionX, entry.positionY, entry.rotation, game, matchId, playerId);
+                otherPlayerTank.wind = match.wind;
             }
         });
+        
+        windText = game.add.text(gameWidth - 16, 16, 'Wind: ' + Math.abs(match.wind) + (match.wind < 0 ? ' E' : ' W'), { fontSize: '32px', fill: '#000' });
+        windText.anchor.setTo(1, 0);
 
         console.log("Game Started");
         gameStarted = true;
