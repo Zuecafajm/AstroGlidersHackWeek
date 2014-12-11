@@ -69,6 +69,8 @@ game = function () {
         //  The score
         // scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
         FindMatch();
+
+        window.onbeforeunload = shutdown;
     }
 
     function FindMatch() {
@@ -214,6 +216,19 @@ game = function () {
                 }
             }
         }
+        else if (actionItem.actionType == ActionTypeEnum.PlayerDisconnect) {
+            Cleanup();
+            waitingForPlayerText = game.add.text(gameWidth / 2, gameHeight / 2, 'THE OTHER PLAYER IS SCARED OF YOU\nFINDING YOU A NEW MATCH', { fontSize: '32px', fill: '#000' });
+
+            waitingForPlayerText.anchor.setTo(0.5, 0.5);
+
+            window.setTimeout(CleanupScaredText, 2800);
+            window.setTimeout(FindMatch, 3000);
+        }
+    }
+
+    function CleanupScaredText() {
+        game.world.remove(waitingForPlayerText);
     }
 
     function Cleanup() {
@@ -491,6 +506,10 @@ game = function () {
         snowflake.enableBody = true;
     }
 
+    function shutdown() {
+        Actions.insert({ matchId: matchId, playerId: playerId, actionType: ActionTypeEnum.PlayerDisconnect });
+    }
+
     /**
     * Public methods
     */
@@ -503,7 +522,8 @@ game = function () {
             {
                 preload: preload,
                 create: create,
-                update: update
+                update: update,
+                shutdown: shutdown
             });
         }
     };

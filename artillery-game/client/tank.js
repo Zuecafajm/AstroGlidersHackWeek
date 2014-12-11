@@ -99,8 +99,12 @@ function SetShotVelocity(shotVelocity) {
 function Shoot() {
     shot = this.game.add.sprite(this.x, this.y, 'cat');
 
-    //TODO: make the scale -0.3 for player 2
-    shot.scale.x = 0.3;
+    if (this.flipped) {
+        shot.scale.x = -0.3;
+    }
+    else {
+        shot.scale.x = 0.3;
+    }
     shot.scale.y = 0.3;
 
     this.shots.push(shot);
@@ -111,6 +115,8 @@ function Shoot() {
 
     shot.body.gravity.x = this.wind;
     shot.body.gravity.y = 200;
+
+    shot.body.angularVelocity = Math.random() * 300 - 150;
 
     shot.enableBody = true;
 
