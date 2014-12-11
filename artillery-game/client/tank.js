@@ -122,6 +122,8 @@ function Shoot() {
 
     shot.body.velocity.set(this.desiredShotVelocity.x, this.desiredShotVelocity.y);
 
+    shot.body.setSize(0.7 * shot.body.sourceWidth, 0.6 * shot.body.sourceHeight, 0, 0);
+
     this.hasQueuedShot = false;
 }
 
@@ -227,25 +229,10 @@ function Update(otherPlayer, platforms, wall) {
             // collide our shot with the other tanks shots
             for (j = 0; j < otherPlayer.shots.length; ++j) {
                 if (this.game.physics.arcade.overlap(this.shots[i], otherPlayer.shots[j])) {
-                    this.shots[i].kill();
-                    this.shots.splice(i, 1);
+                    this.shots[i].body.velocity.x *= -.2;
 
-                    otherPlayer.shots[j].kill();
-                    otherPlayer.shots.splice(j, 1);
-
-                    this.shotCompleted = true;
-                    otherPlayer.shotCompleted = true;
-                    continueAgain = true;
-
-                    this.ResetArm();
-                    otherPlayer.ResetArm();
-
-                    continue;
+                    otherPlayer.shots[j].body.velocity.x *= -.2;
                 }
-            }
-
-            if (continueAgain) {
-                continue;
             }
 
             // we hit ourself
