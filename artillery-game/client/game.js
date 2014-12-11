@@ -361,11 +361,11 @@ game = function () {
     }
 	
 	function displayPlayerNames()
-	{
-		var textHeight = playerTank.body.y + 20;
-		playerNameDisplay = game.add.text(playerTank.body.x, textHeight, playerName, { font: '14px Arial', fill: '#FFFFFF' });		
+    {
+		var textHeight = playerTank.position.y + 40;
+		playerNameDisplay = game.add.text(playerTank.position.x + (playerTank.flipped ? -20 : 20), textHeight, playerName, { font: '24px Arial', fill: '#FFFFFF' });
 		playerNameDisplay.anchor.setTo(0.5, 0);
-		otherPlayerNameDisplay = game.add.text(otherPlayerTank.body.x, textHeight, otherPlayerName, { font: '14px Arial', fill: '#FFFFFF' });		
+		otherPlayerNameDisplay = game.add.text(otherPlayerTank.position.x + (otherPlayerTank.flipped ? -20 : 20), textHeight, otherPlayerName, { font: '24px Arial', fill: '#FFFFFF' });
 		otherPlayerNameDisplay.anchor.setTo(0.5, 0);
 	}
 
