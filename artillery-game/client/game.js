@@ -155,7 +155,7 @@ game = function () {
         // adjust the position so it isn't the same every time
         posX += Math.random() * 200 - 100
 
-        player = Players.find({ name: playerName }).fetch()[0];
+        player = Players.find({ _id: playerId }).fetch()[0];
 
         if (player == null) {
             // player wasn't found, add to the database
