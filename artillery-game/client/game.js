@@ -26,6 +26,8 @@ game = function () {
     var playerId;
     var playerTank;
 
+    var playerName;
+
     var playersTurnId;
 
     var gameStarted;
@@ -55,7 +57,7 @@ game = function () {
 
         if (null == matches || matches.fetch().length == 0) {
             // we don't find an already open match, create one
-            Matches.insert({ playerCount: 0, players: [] });
+            Matches.insert({ playerCount: 0, playerIds: [] });
             matches = Matches.find({ playerCount: 0 });
         }
 
@@ -70,20 +72,22 @@ game = function () {
         var player;
 
         if (match.playerCount == 1) {
-            player = SetupPlayerDB(1, match, "Stu", true);
+            playerName = "Stu";
+            player = SetupPlayerDB(1, true);
         }
         else {
-            player = SetupPlayerDB(2, match, "Aaron", false);
+            playerName = "Aaron";
+            player = SetupPlayerDB(2, false);
         }
 
         playerId = player._id;
-        match.players.push(player);
+        match.playerIds.push(player._id);
 
-        Matches.update({ _id: match._id }, { $set: { playerCount: match.playerCount, players: match.players } });
+        Matches.update({ _id: match._id }, { $set: { playerCount: match.playerCount, playerIds: match.playerIds } });
         Actions.insert({ matchId: matchId, actionType: ActionTypeEnum.PlayerConnect });
     }
 
-    function SetupPlayerDB(playerNumber, match, playerName, turn) {
+    function SetupPlayerDB(playerNumber, turn) {
         var posY = game.world.height - 78;
 
         var posX;
@@ -98,15 +102,19 @@ game = function () {
             rotation = Math.PI / 2;
         }
 
-        player = Players.findOne({ name: playerName });
+        // adjust the position so it isn't the same every time
+        posX += Math.random() * 200 - 100
+
+        player = Players.find({ name: playerName }).fetch()[0];
 
         if (player == null) {
             // player wasn't found, add to the database
-            player = Players.insert({ name: playerName, positionX: posX, positionY: posY, rotation: rotation, playerNumber: match.playerCount, playersTurn: turn });
+            playerId = Players.insert({ name: playerName, positionX: posX, positionY: posY, rotation: rotation, playerNumber: playerNumber });
+            player = Players.find({ _id: playerId }).fetch()[0];
         }
         else {
             // player's already in the database, modify record with new game
-            Players.update({ _id: player._id }, { $set: { name: playerName, positionX: posX, positionY: posY, rotation: rotation, playerNumber: match.playerCount, playersTurn: turn } });
+            Players.update({ _id: player._id }, { $set: { name: playerName, positionX: posX, positionY: posY, rotation: rotation, playerNumber: playerNumber } });
         }
 
         return player;
@@ -126,7 +134,7 @@ game = function () {
 
             //Meteor.publish("ReadyToPlay", function () { });
 
-            SpawnPlayers(match.players);
+            SpawnPlayers();
         }
         else {
             console.log("Somehow we got too many players: " + match.playerCount.toString());
@@ -150,6 +158,7 @@ game = function () {
         else if (actionItem.actionType == ActionTypeEnum.GameOver) {
             if (actionItem.playerId != playerId) {
                 if (!gameStarted) {
+                    SetupPlayerDB(player.playerNumber == 1 ? 2 : 1, true);
                     window.setTimeout(Restart, 3000);
                 }
                 else {
@@ -160,6 +169,9 @@ game = function () {
     }
 
     function Cleanup() {
+        playerTank.active = false;
+        otherPlayerTank.active = false;
+
         game.world.remove(playerTank);
         game.world.remove(otherPlayerTank);
         game.world.remove(playerTank.powerText);
@@ -172,18 +184,8 @@ game = function () {
     function Restart() {
 
         Cleanup();
-
-        match = Matches.find({ _id: matchId }).fetch()[0];
-        
-        players = [];
-        players.push(SetupPlayerDB(1, match, "Stu", player.name == "Stu"));
-        players.push(SetupPlayerDB(2, match, "Aaron", player.name == "Aaron"));
-
-        match.players = players;
-
-        Matches.update({ _id: matchId }, { $set: { players: players } });
-                
-        SpawnPlayers(players);
+                        
+        SpawnPlayers();
 
         gameStarted = true;
     }
@@ -194,6 +196,7 @@ game = function () {
         gameStarted = false;
 
         if (otherPlayerDone) {
+            SetupPlayerDB(player.playerNumber == 1 ? 2 : 1, true);
             window.setTimeout(Restart, 3000);
         }
     }
@@ -204,6 +207,7 @@ game = function () {
         gameStarted = false;
 
         if (otherPlayerDone) {
+            SetupPlayerDB(player.playerNumber == 1 ? 2 : 1, true);
             window.setTimeout(Restart, 3000);
         }
     }
@@ -214,6 +218,7 @@ game = function () {
         gameStarted = false;
 
         if (otherPlayerDone) {
+            SetupPlayerDB(player.playerNumber == 1 ? 2 : 1, true);
             window.setTimeout(Restart, 3000);
         }
     }
@@ -223,8 +228,17 @@ game = function () {
         waitingForPlayerText.anchor.setTo(0.5, 0.5);
     }
 
-    function SpawnPlayers(players) {
-        console.log("Spawn our players");
+    function SpawnPlayers() {
+        var match = Matches.find({ _id: matchId }).fetch()[0];
+        
+        var players = [];
+
+        for (i = 0; i < match.playerIds.length; ++i) {
+
+            var tempPlayer = Players.find({ _id: match.playerIds[i] }).fetch()[0];
+
+            players.push(tempPlayer);
+        }
 
         players.forEach(function (entry) {
             if (entry._id == playerId) {

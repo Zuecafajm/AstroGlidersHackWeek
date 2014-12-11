@@ -151,7 +151,7 @@ function Update(otherPlayer, platforms) {
                 continue;
             }
 
-            // we hit the ground and the shot was travelling downward
+            // we hit the ground and the shot was travelling downward or the shot went off the bottom of the screen
             if ((this.shots[i].body.velocity.y > 0 && this.game.physics.arcade.overlap(this.shots[i], platforms))
                 || this.shots[i].position.y > 720) {
                 this.shots[i].kill();
@@ -159,6 +159,29 @@ function Update(otherPlayer, platforms) {
 
                 this.shotCompleted = true;
 
+                continue;
+            }
+
+            var continueAgain = false;
+
+            // collide our shot with the other tanks shots
+            for (j = 0; j < otherPlayer.shots.length; ++j) {
+                if (this.game.physics.arcade.overlap(this.shots[i], otherPlayer.shots[j])) {
+                    this.shots[i].kill();
+                    this.shots.splice(i, 1);
+
+                    otherPlayer.shots[j].kill();
+                    otherPlayer.shots.splice(j, 1);
+
+                    this.shotCompleted = true;
+                    otherPlayer.shotCompleted = true;
+                    continueAgain = true;
+
+                    continue;
+                }
+            }
+
+            if (continueAgain) {
                 continue;
             }
 
