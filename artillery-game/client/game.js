@@ -48,6 +48,8 @@ game = function () {
     var snowflakes = [];
     var timeToNextSnowFlake = 0;
 
+    var rotationToSet;
+
     function preload() {
         game.load.image('ground', '/assets/platform.png');
         game.load.image('sky', '/assets/sky.png');
@@ -197,7 +199,7 @@ game = function () {
         }
         else if (actionItem.actionType == ActionTypeEnum.PlayerShoot) {
             if (actionItem.playerId != playerId) {
-                otherPlayerTank.SetRotationDestination(actionItem.rotation);
+                rotationToSet = actionItem.rotation;
                 otherPlayerTank.SetShotVelocity(actionItem.velocity);
             }
         }
@@ -399,6 +401,7 @@ game = function () {
 
             if (playerTank.hasQueuedShot && otherPlayerTank.hasQueuedShot) {
                 playerTank.RotateAndShoot();
+                otherPlayerTank.SetRotationDestination(rotationToSet);
                 otherPlayerTank.RotateAndShoot();
             }
 
