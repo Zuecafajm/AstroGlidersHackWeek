@@ -1,20 +1,31 @@
 window.AstroGliders = window.AstroGliders || {};
 
-AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId) {
+AstroGliders.Tank = function (isPlayer, x, y, rotation, flip, game, matchId, playerId) {
     // The player and its settings
-    tank = game.add.sprite(x, y, 'diamond');
-    tank.anchor.setTo(0.5, 0.5);
+    tank = game.add.group();
+    tank.position.x = x;
+    tank.position.y = y - 10;
 
-    tank.enableBody = true;
+    tank.base = tank.create(0, 0, 'catapult');
+    game.physics.arcade.enable(tank.base);
 
-    //  We need to enable physics on the player
-    game.physics.arcade.enable(tank);
+    tank.arm = tank.create(0, 7, 'arm');
+    tank.arm.anchor.setTo(0.95, 0.2);
+    tank.arrow = tank.create(0, 0, 'arrow');
+    tank.arrow.anchor.setTo(0.5, 0);
 
-    //  Player physics properties. Give the little guy a slight bounce.
-    tank.body.bounce.y = 0.2;
-    tank.body.collideWorldBounds = true;
+    if (flip) {
+        tank.base.scale.x = -1;
+        tank.arm.scale.x = -1;
 
-    tank.rotation = rotation;
+        tank.arm.position.x = -50;
+    }
+    else {
+        tank.arm.position.x = 50;
+    }
+
+    tank.flipped = flip
+    tank.arrow.rotation = rotation;
     tank.power = 100;
 
     tank.isPlayer = isPlayer;
@@ -29,7 +40,7 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
         tank.powerDown = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
 
         tank.powerText = game.add.text(16, 16, 'Power: ' + (tank.power).toString(), { fontSize: '32px', fill: '#000' });
-        tank.angleText = game.add.text(16, 48, 'Angle: ' + (Math.round(((tank.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
+        tank.angleText = game.add.text(16, 48, 'Angle: ' + (Math.round(((tank.arm.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
 
         tank.active = true;
     }
@@ -38,10 +49,13 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
 
     tank.Update = Update;
     tank.Shoot = Shoot;
-    tank.StartRotating = StartRotating;
-    tank.SetRotationDestination = SetRotationDestination;
+    tank.RotateAndShoot = RotateAndShoot;
     tank.SetShotVelocity = SetShotVelocity;
-    tank.RotateToDestination = RotateToDestination;
+    tank.RotateToDestinationAndShoot = RotateToDestinationAndShoot;
+    tank.SetRotationDestination = SetRotationDestination;
+    tank.ResetArm = ResetArm;
+    tank.kill = kill;
+    tank.Cleanup = Cleanup;
 
     tank.shots = [];
 
@@ -49,11 +63,12 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, game, matchId, playerId)
     tank.playerId = playerId;
 
     tank.hasQueuedShot = false;
-    tank.shouldRotate = false;
     tank.isRotating = false;
 
     tank.dead = false;
     tank.shotCompleted = false;
+
+    tank.amountToRotate = Math.PI / 4;
 
     return tank;
 }
@@ -61,25 +76,18 @@ AstroGliders.Tank.prototype = new AstroGliders.Tank;
 
 function Fire() {
     if (this.active) {
-        this.desiredShotVelocity = new Phaser.Point(Math.cos(this.rotation + Math.PI / 2.0) * this.power * 5, Math.sin(this.rotation + Math.PI / 2.0) * this.power * 5);
+        this.desiredShotVelocity = new Phaser.Point(Math.cos(this.arrow.rotation + Math.PI / 2.0) * this.power * 5, Math.sin(this.arrow.rotation + Math.PI / 2.0) * this.power * 5);
 
         this.hasQueuedShot = true;
-        Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: this.desiredShotVelocity, rotation: this.rotation });
+        Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: this.desiredShotVelocity, rotation: this.arrow.rotation });
 
         this.active = false;
         this.shotCompleted = false;
     }
 }
 
-function StartRotating() {
-    this.shouldRotate = false;
+function RotateAndShoot() {
     this.isRotating = true;
-}
-
-function SetRotationDestination(tankRotation) {
-    this.shouldRotate = true;
-
-    this.desiredRotation = tankRotation;
 }
 
 function SetShotVelocity(shotVelocity) {
@@ -111,18 +119,43 @@ function Shoot() {
     this.hasQueuedShot = false;
 }
 
-function RotateToDestination() {
-    var rotationDifference = this.rotation - this.desiredRotation;
+function SetRotationDestination(rotation) {
+    this.arrow.rotation = rotation;
 
-    if (Math.abs(rotationDifference) < 0.05) {
-        this.rotation = this.desiredRotation;
-        this.isRotating = false;
-    }
-    else if (rotationDifference > 0) {
-        this.rotation -= 0.03;
+    if (this.flipped) {
+        this.arm.rotation = rotation - Math.PI * 3 / 4;
     }
     else {
-        this.rotation += 0.03;
+        this.arm.rotation = rotation + Math.PI * 3 / 4;
+    }
+
+    this.amountToRotate = Math.PI / 4;
+}
+
+function ResetArm() {
+    if (this.flipped) {
+        this.arm.rotation = this.arrow.rotation - Math.PI * 3 / 4;
+    }
+    else {
+        this.arm.rotation = this.arrow.rotation + Math.PI * 3 / 4;
+    }
+
+    this.amountToRotate = Math.PI / 4;
+}
+
+function RotateToDestinationAndShoot() {
+    if (this.amountToRotate < 0.06) {
+        this.rotation = this.desiredRotation;
+        this.isRotating = false;
+        this.Shoot();
+    }
+    else if (this.flipped) {
+        this.arm.rotation -= 0.06;
+        this.amountToRotate -= 0.06;
+    }
+    else {
+        this.arm.rotation += 0.06;
+        this.amountToRotate -= 0.06;
     }
 }
 
@@ -130,17 +163,33 @@ function ShotHit() {
     console.log("shot hit");
 }
 
+function kill() {
+    this.base.kill();
+    this.arm.kill();
+    this.arrow.kill();
+}
+
+function Cleanup() {
+    this.base.kill();
+    this.arm.kill();
+    this.arrow.kill();
+
+    this.game.world.remove(this.base);
+    this.game.world.remove(this.arm);
+    this.game.world.remove(this.arrow);
+}
+
 function Update(otherPlayer, platforms, wall) {
 
     if (this.isRotating) {
-        this.RotateToDestination();
+        this.RotateToDestinationAndShoot();
     }
 
     if (this.shots != null && this.shots.length > 0) {
 
         for (i = 0; i < this.shots.length; ++i) {
             // we hit the other tank
-            if (this.game.physics.arcade.overlap(this.shots[i], otherPlayer)) {
+            if (this.game.physics.arcade.overlap(this.shots[i], otherPlayer.base)) {
                 this.shots[i].kill();
                 this.shots.splice(i, 1);
                 otherPlayer.kill();
@@ -148,6 +197,8 @@ function Update(otherPlayer, platforms, wall) {
                 otherPlayer.dead = true;
 
                 this.shotCompleted = true;
+
+                this.ResetArm();
 
                 continue;
             }
@@ -159,6 +210,8 @@ function Update(otherPlayer, platforms, wall) {
                 this.shots.splice(i, 1);
 
                 this.shotCompleted = true;
+
+                this.ResetArm();
 
                 continue;
             }
@@ -178,6 +231,9 @@ function Update(otherPlayer, platforms, wall) {
                     otherPlayer.shotCompleted = true;
                     continueAgain = true;
 
+                    this.ResetArm();
+                    otherPlayer.ResetArm();
+
                     continue;
                 }
             }
@@ -192,13 +248,15 @@ function Update(otherPlayer, platforms, wall) {
 
             var between = new Phaser.Point(betweenX, betweenY);
 
-            if (this.shots[i].body.velocity.dot(between) > 0 && this.game.physics.arcade.overlap(this.shots[i], this)) {
+            if (this.shots[i].body.velocity.dot(between) > 0 && this.game.physics.arcade.overlap(this.shots[i], this.base)) {
                 this.kill();
                 this.shots[i].kill();
                 this.shots.splice(i, 1);
 
                 this.dead = true;
                 this.shotCompleted = true;
+
+                this.ResetArm();
 
                 continue;
             }
@@ -208,24 +266,28 @@ function Update(otherPlayer, platforms, wall) {
     if (this.active) {
         if (this.powerUp.isDown && this.power < 150) {
             this.power += 1;
+            this.arrow.scale.y = this.power / 100;
             this.game.world.remove(this.powerText);
             this.powerText = this.game.add.text(16, 16, 'Power: ' + (this.power).toString(), { fontSize: '32px', fill: '#000' });
         }
         if (this.powerDown.isDown && this.power > 1) {
             this.power -= 1;
+            this.arrow.scale.y = this.power / 100;
             this.game.world.remove(this.powerText);
             this.powerText = this.game.add.text(16, 16, 'Power: ' + (this.power).toString(), { fontSize: '32px', fill: '#000' });
         }
 
         if (this.rotateRight.isDown) {
-            this.rotation -= 0.0174532925;
+            this.arrow.rotation -= 0.0174532925;
+            this.arm.rotation -= 0.0174532925;
             this.game.world.remove(this.angleText);
-            this.angleText = this.game.add.text(16, 48, 'Angle: ' + (Math.round(((this.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
+            this.angleText = this.game.add.text(16, 48, 'Angle: ' + (Math.round(((this.arm.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
         }
         if (this.rotateLeft.isDown) {
-            this.rotation += 0.0174532925;
+            this.arrow.rotation += 0.0174532925;
+            this.arm.rotation += 0.0174532925;
             this.game.world.remove(this.angleText);
-            this.angleText = this.game.add.text(16, 48, 'Angle: ' + (Math.round(((this.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
+            this.angleText = this.game.add.text(16, 48, 'Angle: ' + (Math.round(((this.arm.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
         }
     }
 }

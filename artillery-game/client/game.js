@@ -53,7 +53,9 @@ game = function () {
         game.load.image('sky', '/assets/sky.png');
         game.load.image('cat', '/assets/cat.png');
         game.load.image('snow', '/assets/snow.png');
-        game.load.image('diamond', '/assets/diamond.png');
+        game.load.image('catapult', '/assets/catapult_base.png');
+        game.load.image('arm', '/assets/catapult_arm.png');
+        game.load.image('arrow', '/assets/arrow.png');
     }
 
     function create() {
@@ -131,7 +133,7 @@ game = function () {
 
         if (playerNumber == 1) {
             posX = gameWidth / 8.0;
-            rotation = -Math.PI / 2;
+            rotation = -Math.PI * 3 / 4;
 
             // player 1 gets to decide the wind for the match
             var maxWind = (20 + 10 * Math.min(totalScore, 8));
@@ -143,7 +145,7 @@ game = function () {
         }
         else {
             posX = gameWidth / 8.0 * 7
-            rotation = Math.PI / 2;
+            rotation = Math.PI * 3 / 4;
         }
 
         // adjust the position so it isn't the same every time
@@ -215,6 +217,9 @@ game = function () {
     function Cleanup() {
         playerTank.active = false;
         otherPlayerTank.active = false;
+
+        playerTank.Cleanup();
+        otherPlayerTank.Cleanup();
 
         game.world.remove(wall);
         game.world.remove(playerTank);
@@ -309,14 +314,14 @@ game = function () {
                 // this is our current player
                 console.log("Current Player is " + entry.name);
 
-                playerTank = AstroGliders.Tank(true, entry.positionX, entry.positionY, entry.rotation, game, matchId, playerId);
+                playerTank = AstroGliders.Tank(true, entry.positionX, entry.positionY, entry.rotation, entry.playerNumber == 2, game, matchId, playerId);
                 playerTank.wind = match.wind;
             }
             else {
                 // this is the other player being represented on the client
                 console.log("Other player is " + entry.name);
                 otherPlayerName = entry.name;
-                otherPlayerTank = AstroGliders.Tank(false, entry.positionX, entry.positionY, entry.rotation, game, matchId, playerId);
+                otherPlayerTank = AstroGliders.Tank(false, entry.positionX, entry.positionY, entry.rotation, entry.playerNumber == 2, game, matchId, playerId);
                 otherPlayerTank.wind = match.wind;
             }
         });
@@ -392,12 +397,9 @@ game = function () {
             playerTank.Update(otherPlayerTank, platforms, wall);
             otherPlayerTank.Update(playerTank, platforms, wall);
 
-            if (playerTank.hasQueuedShot && otherPlayerTank.hasQueuedShot && otherPlayerTank.shouldRotate) {
-                otherPlayerTank.StartRotating();
-            }
-            else if (playerTank.hasQueuedShot && otherPlayerTank.hasQueuedShot && !otherPlayerTank.isRotating) {
-                playerTank.Shoot();
-                otherPlayerTank.Shoot();
+            if (playerTank.hasQueuedShot && otherPlayerTank.hasQueuedShot) {
+                playerTank.RotateAndShoot();
+                otherPlayerTank.RotateAndShoot();
             }
 
             GoToGameOverOrNextTurn();
