@@ -7,9 +7,23 @@
 
 
     <script type="text/javascript">
-        function LaunchGame() {
-            if (Meteor.isClient) {
-                var gameCreator = game();
+			
+        document.onkeyup = function(event)
+		{
+			var keyCode = event.keyCode;
+			
+			// if the player hits enter launch the game
+			if(keyCode == 13){
+				LaunchGame();		
+			}
+		}
+		
+		function LaunchGame() 
+		{			
+			document.onkeyup = null;				
+						
+            if (Meteor.isClient) {                
+				var gameCreator = game();
                 gameCreator.createGame();
             }
         }
@@ -22,10 +36,10 @@
 		<div class="avatar">
       <img src="assets/cat.png">
 		</div>
-		<input id="playername" type="text" placeholder="player name (optional)" required>
+		<input id="playername" autofocus type="text" placeholder="player name (optional)" required>
             <div class="bar">
 			<i></i>
 		</div>		
-		<button onclick="LaunchGame()">Play</button>
+		<button onclick="LaunchGame()">Play</button>		
 	</div>
 </body>
