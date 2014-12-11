@@ -27,6 +27,7 @@ game = function () {
     var playerTank;
 
     var playerName;
+    var otherPlayerName;
 
     var playersTurnId;
 
@@ -34,6 +35,7 @@ game = function () {
     var otherPlayerDone;
 
     var windText;
+    var scoreText;
 
     function preload() {
         game.load.image('ground', '/assets/platform.png');
@@ -59,7 +61,7 @@ game = function () {
 
         if (null == matches || matches.fetch().length == 0) {
             // we don't find an already open match, create one
-            Matches.insert({ playerCount: 0, playerIds: [] });
+            Matches.insert({ playerCount: 0, playerIds: [], score : [] });
             matches = Matches.find({ playerCount: 0 });
         }
 
@@ -85,7 +87,13 @@ game = function () {
         playerId = player._id;
         match.playerIds.push(player._id);
 
-        Matches.update({ _id: match._id }, { $set: { playerCount: match.playerCount, playerIds: match.playerIds } });
+        var scores = [];
+
+        for (i = 0; i < match.playerIds.length; ++i) {
+            scores.push({ playerId: match.playerIds[i], score: 0 });
+        }
+
+        Matches.update({ _id: match._id }, { $set: { playerCount: match.playerCount, playerIds: match.playerIds, score: scores } });
         Actions.insert({ matchId: matchId, actionType: ActionTypeEnum.PlayerConnect });
     }
 
@@ -183,6 +191,7 @@ game = function () {
         game.world.remove(playerTank.powerText);
         game.world.remove(playerTank.angleText);
 
+        game.world.remove(scoreText);
         game.world.remove(windText);
         game.world.remove(waitingForPlayerText);
         game.world.remove(gameOverText);
@@ -201,6 +210,8 @@ game = function () {
         gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'YOU WIN', { fontSize: '32px', fill: '#000' });
         gameOverText.anchor.setTo(0.5, 0.5);
         gameStarted = false;
+
+        IncreaseMyScore();
 
         if (otherPlayerDone) {
             SetupPlayerDB(player.playerNumber == 1 ? 2 : 1, true);
@@ -224,10 +235,24 @@ game = function () {
         gameOverText.anchor.setTo(0.5, 0.5);
         gameStarted = false;
 
+        IncreaseMyScore();
+
         if (otherPlayerDone) {
             SetupPlayerDB(player.playerNumber == 1 ? 2 : 1, true);
             window.setTimeout(Restart, 3000);
         }
+    }
+
+    function IncreaseMyScore() {
+        var match = Matches.find({ _id: matchId }).fetch()[0];
+
+        for (i = 0; i < match.score.length; ++i) {
+            if (match.score[i].playerId == playerId) {
+                ++(match.score[i].score);
+            }
+        }
+
+        Matches.update({ _id: matchId }, match);
     }
 
     function SetWaitingForPlayerText() {
@@ -241,7 +266,6 @@ game = function () {
         var players = [];
 
         for (i = 0; i < match.playerIds.length; ++i) {
-
             var tempPlayer = Players.find({ _id: match.playerIds[i] }).fetch()[0];
 
             players.push(tempPlayer);
@@ -258,12 +282,27 @@ game = function () {
             else {
                 // this is the other player being represented on the client
                 console.log("Other player is " + entry.name);
-
+                otherPlayerName = entry.name;
                 otherPlayerTank = AstroGliders.Tank(false, entry.positionX, entry.positionY, entry.rotation, game, matchId, playerId);
                 otherPlayerTank.wind = match.wind;
             }
         });
-        
+
+        var ourScore;
+        var othersScore;
+
+        for (i = 0; i < match.score.length; ++i) {
+            if (match.score[i].playerId == playerId) {
+                ourScore = match.score[i].score;
+            }
+            else {
+                othersScore = match.score[i].score;
+            }
+        }
+
+        scoreText = game.add.text(gameWidth / 2, 16, playerName + ": " + ourScore + " | " + otherPlayerName + ": " + othersScore, { fontSize: '32px', fill: '#000' });
+        scoreText.anchor.setTo(0.5, 0);
+
         windText = game.add.text(gameWidth - 16, 16, 'Wind: ' + Math.abs(match.wind) + (match.wind < 0 ? ' E' : ' W'), { fontSize: '32px', fill: '#000' });
         windText.anchor.setTo(1, 0);
 
