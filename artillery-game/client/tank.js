@@ -89,7 +89,7 @@ function SetShotVelocity(shotVelocity) {
 }
 
 function Shoot() {
-    shot = this.game.add.sprite(this.x, this.y, 'star');
+    shot = this.game.add.sprite(this.x, this.y, 'cat');
 
     //TODO: make the scale -0.3 for player 2
     shot.scale.x = 0.3;

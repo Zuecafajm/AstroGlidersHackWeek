@@ -39,10 +39,15 @@ game = function () {
 
     var totalScore;
 
+    var wind;
+    var snowflakes = [];
+    var timeToNextSnowFlake = 0;
+
     function preload() {
         game.load.image('ground', '/assets/platform.png');
         game.load.image('sky', '/assets/sky.png');
-        game.load.image('star', '/assets/cat.png');
+        game.load.image('cat', '/assets/cat.png');
+        game.load.image('snow', '/assets/snow.png');
         game.load.image('diamond', '/assets/diamond.png');
     }
 
@@ -113,7 +118,7 @@ game = function () {
 
             // player 1 gets to decide the wind for the match
             var maxWind = (20 + 10 * Math.min(totalScore, 8));
-            var wind = Math.round(Math.random() * maxWind * 2 - maxWind);
+            wind = Math.round(Math.random() * maxWind * 2 - maxWind);
             Matches.update({ _id: matchId }, { $set: { wind: wind } });
         }
         else {
@@ -293,6 +298,8 @@ game = function () {
             }
         });
 
+        wind = match.wind;
+
         var ourScore;
         var othersScore;
 
@@ -310,7 +317,7 @@ game = function () {
         scoreText = game.add.text(gameWidth / 2, 16, playerName + ": " + ourScore + " | " + otherPlayerName + ": " + othersScore, { fontSize: '32px', fill: '#000' });
         scoreText.anchor.setTo(0.5, 0);
 
-        windText = game.add.text(gameWidth - 16, 16, 'Wind: ' + Math.abs(match.wind) + (match.wind < 0 ? ' E' : ' W'), { fontSize: '32px', fill: '#000' });
+        windText = game.add.text(gameWidth - 16, 16, 'Wind: ' + Math.abs(match.wind) + (match.wind < 0 ? ' W' : ' E'), { fontSize: '32px', fill: '#000' });
         windText.anchor.setTo(1, 0);
 
         console.log("Game Started");
@@ -362,6 +369,8 @@ game = function () {
             game.physics.arcade.collide(playerTank, platforms);
             game.physics.arcade.collide(otherPlayerTank, platforms);
         }
+
+        Snow();
     }
 
     function GoToGameOverOrNextTurn() {
@@ -389,6 +398,40 @@ game = function () {
                 playerTank.active = true;
             }
         }
+    }
+
+    function Snow() {
+        --timeToNextSnowFlake;
+
+        if (timeToNextSnowFlake <= 0) {
+            SpawnSnowFlake();
+            timeToNextSnowFlake = Math.random() * 5;
+        }
+
+        for (i = snowflakes.length - 1; i >= 0; --i) {
+            if (snowflakes[i].position.y > gameHeight + 30) {
+                snowflakes[i].kill();
+                snowflakes.splice(i, 1);
+            }
+        }
+    }
+
+    function SpawnSnowFlake() {
+        var snowflake = game.add.sprite(Math.random() * (gameWidth + 200) - 200, -30, 'snow');
+        snowflake.scale.x = Math.random() * 0.3 + 0.5;
+        snowflake.scale.y = Math.random() * 0.3 + 0.5;
+        
+        snowflake.rotation = Math.random() * Math.PI * 2 - Math.PI;
+
+        snowflakes.push(snowflake);
+
+        game.physics.arcade.enable(snowflake);
+
+        snowflake.body.angularVelocity = Math.random() * 50 - 25;
+        snowflake.body.gravity.x = wind;
+        snowflake.body.gravity.y = 100;
+
+        snowflake.enableBody = true;
     }
 
     /**
