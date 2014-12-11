@@ -37,6 +37,8 @@ game = function () {
     var windText;
     var scoreText;
 
+    var totalScore;
+
     function preload() {
         game.load.image('ground', '/assets/platform.png');
         game.load.image('sky', '/assets/sky.png');
@@ -73,6 +75,8 @@ game = function () {
 
         match.playerCount++;
 
+        totalScore = 0;
+
         var player;
 
         if (match.playerCount == 1) {
@@ -108,7 +112,8 @@ game = function () {
             rotation = -Math.PI / 2;
 
             // player 1 gets to decide the wind for the match
-            var wind = Math.round(Math.random() * 60 - 30);
+            var maxWind = (20 + 10 * Math.min(totalScore, 8));
+            var wind = Math.round(Math.random() * maxWind * 2 - maxWind);
             Matches.update({ _id: matchId }, { $set: { wind: wind } });
         }
         else {
@@ -300,6 +305,8 @@ game = function () {
             }
         }
 
+        totalScore = ourScore + othersScore;
+
         scoreText = game.add.text(gameWidth / 2, 16, playerName + ": " + ourScore + " | " + otherPlayerName + ": " + othersScore, { fontSize: '32px', fill: '#000' });
         scoreText.anchor.setTo(0.5, 0);
 
@@ -308,6 +315,7 @@ game = function () {
 
         console.log("Game Started");
         gameStarted = true;
+        otherPlayerDone = false;
     }
 
     function SetupWorld() {
@@ -374,7 +382,7 @@ game = function () {
                 playerTank.shotCompleted = false;
                 otherPlayerTank.shotCompleted = false;
 
-                Actions.insert({ matchId: matchId, actionType: ActionTypeEnum.GameOver });
+                Actions.insert({ matchId: matchId, actionType: ActionTypeEnum.GameOver, playerId : playerId });
             }
                 // no winner, go to the next shot
             else {
