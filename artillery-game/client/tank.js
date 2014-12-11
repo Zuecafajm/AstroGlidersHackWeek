@@ -99,6 +99,10 @@ function SetShotVelocity(shotVelocity) {
 function Shoot() {
     shot = this.game.add.sprite(this.x, this.y, 'cat');
 
+    if (this.isPlayer) {
+        this.game.sfx.play('meow1');
+    }
+
     if (this.flipped) {
         shot.scale.x = -0.3;
     }
@@ -228,8 +232,13 @@ function Update(otherPlayer, platforms, wall) {
 
             // collide our shot with the other tanks shots
             for (j = 0; j < otherPlayer.shots.length; ++j) {
-                if (this.game.physics.arcade.overlap(this.shots[i], otherPlayer.shots[j])) {
+                if (this.game.physics.arcade.overlap(this.shots[i], otherPlayer.shots[j]) && 
+                    this.shots[i].body.velocity.dot(otherPlayer.shots[j].body.velocity) < 0) {
                     this.shots[i].body.velocity.x *= -.2;
+
+                    if (this.isPlayer) {
+                        this.game.sfx.play('meow2');
+                    }
 
                     otherPlayer.shots[j].body.velocity.x *= -.2;
                 }

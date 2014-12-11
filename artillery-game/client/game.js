@@ -58,19 +58,34 @@ game = function () {
         game.load.image('catapult', '/assets/catapult_base.png');
         game.load.image('arm', '/assets/catapult_arm.png');
         game.load.image('arrow', '/assets/arrow.png');
+
+        game.load.audio('sfx', '/assets/cat.m4a');
     }
 
     function create() {
+        game.sfx = game.add.audio('sfx');
+        game.sfx.addMarker('meow1', 0, 1.1);
+        game.sfx.addMarker('meow2', 1.3, 1.1);
+        game.sfx.addMarker('whine', 2.7, 0.8);
+        game.sfx.addMarker('purr', 5, 5);
+
         game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
         game.stage.disableVisibilityChange = true;
 
         SetupWorld();
+
+        SetupSound();
 
         //  The score
         // scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
         FindMatch();
 
         window.onbeforeunload = shutdown;
+    }
+
+    function SetupSound()
+    {
+
     }
 
     function FindMatch() {
@@ -262,6 +277,9 @@ game = function () {
     }
 
     function Win() {
+
+        game.sfx.play('purr');
+
         gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'YOU WIN', { fontSize: '32px', fill: '#000' });
         gameOverText.anchor.setTo(0.5, 0.5);
         gameStarted = false;
@@ -275,6 +293,10 @@ game = function () {
     }
 
     function Lose() {
+
+        game.sfx.play('whine');
+        
+
         gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'YOU LOSE', { fontSize: '32px', fill: '#000' });
         gameOverText.anchor.setTo(0.5, 0.5);
         gameStarted = false;
@@ -286,6 +308,9 @@ game = function () {
     }
 
     function Draw() {
+
+        game.sfx.play('purr');        
+
         gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'EVERYONE\'S A WINNER', { fontSize: '32px', fill: '#000' });
         gameOverText.anchor.setTo(0.5, 0.5);
         gameStarted = false;
