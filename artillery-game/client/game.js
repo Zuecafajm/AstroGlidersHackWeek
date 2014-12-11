@@ -27,6 +27,9 @@ game = function () {
     var playerTank;
     var playerName;
 
+	var playerNameDisplay;
+	var otherPlayerNameDisplay;
+	
     var otherPlayerName;
 
     var playersTurnId;
@@ -223,6 +226,8 @@ game = function () {
         game.world.remove(windText);
         game.world.remove(waitingForPlayerText);
         game.world.remove(gameOverText);
+		game.world.remove(playerNameDisplay);
+		game.world.remove(otherPlayerNameDisplay);
     }
 
     function Restart() {
@@ -344,7 +349,18 @@ game = function () {
         console.log("Game Started");
         gameStarted = true;
         otherPlayerDone = false;
+		
+		displayPlayerNames();
     }
+	
+	function displayPlayerNames()
+	{
+		var textHeight = playerTank.body.y + 20;
+		playerNameDisplay = game.add.text(playerTank.body.x, textHeight, playerName, { font: '14px Arial', fill: '#FFFFFF' });		
+		playerNameDisplay.anchor.setTo(0.5, 0);
+		otherPlayerNameDisplay = game.add.text(otherPlayerTank.body.x, textHeight, otherPlayerName, { font: '14px Arial', fill: '#FFFFFF' });		
+		otherPlayerNameDisplay.anchor.setTo(0.5, 0);
+	}
 
     function SetupWorld() {
         //  We're going to be using physics, so enable the Arcade Physics system
