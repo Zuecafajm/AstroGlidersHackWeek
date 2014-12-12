@@ -180,12 +180,13 @@ game = function () {
         if (player == null) {
             // player wasn't found, add to the database
             playerId = Players.insert({ name: playerName, positionX: posX, positionY: posY, rotation: rotation, playerNumber: playerNumber });
-            player = Players.find({ _id: playerId }).fetch()[0];
         }
         else {
             // player's already in the database, modify record with new game
             Players.update({ _id: player._id }, { $set: { name: playerName, positionX: posX, positionY: posY, rotation: rotation, playerNumber: playerNumber } });
         }
+
+        player = Players.find({ _id: playerId }).fetch()[0];
 
         return player;
     }
