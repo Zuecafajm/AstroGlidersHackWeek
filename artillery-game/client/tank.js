@@ -106,13 +106,11 @@ AstroGliders.Tank.prototype = new AstroGliders.Tank;
 
 function rotateLeftButtonUp()
 {
-    console.log("Rotate left up");
     this.rotateButtonRight = false;
 }
 
 function rotateLeftButtonDown()
 {
-    console.log("Rotate left down");
     this.rotateButtonRight = true;
 }
 
@@ -156,10 +154,15 @@ function Fire() {
 
         this.active = false;
         this.shotCompleted = false;
+
+        this.waitingToFireText = this.game.add.text(640, 360, 'Other player is pro-cat-stinating', { fontSize: '32px', fill: '#000' });
+        this.waitingToFireText.anchor.setTo(0.5, 0.5);
     }
 }
 
 function RotateAndShoot(catType) {
+    this.game.world.remove(this.waitingToFireText);
+
     this.isRotating = true;
     this.desiredCatType = catType;
 }

@@ -195,15 +195,13 @@ game = function () {
         if (match.playerCount == 1) {
             // only have one player, throw up a message about waiting for the other
 
-            waitingForPlayerText = game.add.text(gameWidth / 2, gameHeight / 2, 'Waiting for other player to join', { fontSize: '32px', fill: '#000' });
+            waitingForPlayerText = game.add.text(gameWidth / 2, gameHeight / 2, 'Looking for a fur-end', { fontSize: '32px', fill: '#000' });
             waitingForPlayerText.anchor.setTo(0.5, 0.5);
         }
         else if (match.playerCount == 2) {
             // got two players, start game
 
             game.world.remove(waitingForPlayerText);
-
-            //Meteor.publish("ReadyToPlay", function () { });
 
             SpawnPlayers();
         }
@@ -239,7 +237,7 @@ game = function () {
         }
         else if (actionItem.actionType == ActionTypeEnum.PlayerDisconnect) {
             Cleanup();
-            waitingForPlayerText = game.add.text(gameWidth / 2, gameHeight / 2, 'THE OTHER PLAYER IS A SCAREDY CAT\n        FINDING YOU A NEW MATCH', { fontSize: '32px', fill: '#000' });
+            waitingForPlayerText = game.add.text(gameWidth / 2, gameHeight / 2, 'The other player is a scaredy cat\n        Finding you a new purrtner', { fontSize: '32px', fill: '#000' });
 
             waitingForPlayerText.anchor.setTo(0.5, 0.5);
 
@@ -286,7 +284,7 @@ game = function () {
 
         game.sfx.play('purr');
 
-        gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'YOU WIN', { fontSize: '32px', fill: '#000' });
+        gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'Purrfect!', { fontSize: '32px', fill: '#000' });
         gameOverText.anchor.setTo(0.5, 0.5);
         gameStarted = false;
 
@@ -303,7 +301,7 @@ game = function () {
         game.sfx.play('whine');
         
 
-        gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'YOU LOSE', { fontSize: '32px', fill: '#000' });
+        gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'This is a cat-astrophe!', { fontSize: '32px', fill: '#000' });
         gameOverText.anchor.setTo(0.5, 0.5);
         gameStarted = false;
 
@@ -317,7 +315,7 @@ game = function () {
 
         game.sfx.play('purr');        
 
-        gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'EVERYONE\'S A WINNER', { fontSize: '32px', fill: '#000' });
+        gameOverText = game.add.text(gameWidth / 2, gameHeight / 2, 'EVERYONE\'S A WINNER!!!', { fontSize: '32px', fill: '#000' });
         gameOverText.anchor.setTo(0.5, 0.5);
         gameStarted = false;
 
@@ -523,15 +521,14 @@ game = function () {
     function Snow() {
         --timeToNextSnowFlake;
 
-        if (timeToNextSnowFlake <= 0) {
+        if (timeToNextSnowFlake <= 0 && snowflakes.length < 75) {
             SpawnSnowFlake();
             timeToNextSnowFlake = Math.random() * 5;
         }
 
         for (i = snowflakes.length - 1; i >= 0; --i) {
             if (snowflakes[i].position.y > gameHeight + 30) {
-                snowflakes[i].kill();
-                snowflakes.splice(i, 1);
+                snowflakes[i].Reset();
             }
         }
     }
@@ -551,7 +548,14 @@ game = function () {
         snowflake.body.gravity.x = wind;
         snowflake.body.gravity.y = 100;
 
-        snowflake.enableBody = true;
+        snowflake.enableBody = true;        
+
+        snowflake.Reset = function () {
+            this.position.x = Math.random() * (gameWidth + 50 + 50 * Math.abs(wind)) - (25 * Math.abs(wind));
+            this.position.y = -30;
+
+            this.body.velocity.setTo(0, 0);
+        }
     }
 
     function shutdown() {
