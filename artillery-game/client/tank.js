@@ -106,43 +106,43 @@ AstroGliders.Tank.prototype = new AstroGliders.Tank;
 function rotateLeftButtonUp()
 {
     console.log("Rotate left up");
-    tank.rotateButtonRight = false;
+    this.rotateButtonRight = false;
 }
 
 function rotateLeftButtonDown()
 {
     console.log("Rotate left down");
-    tank.rotateButtonRight = true;
+    this.rotateButtonRight = true;
 }
 
 function rotateRightButtonUp()
 {
-    tank.rotateButtonLeft = false;
+    this.rotateButtonLeft = false;
 }
 
 function rotateRightButtonDown()
 {
-    tank.rotateButtonLeft = true;
+    this.rotateButtonLeft = true;
 }
 
 function powerUpButtonUp()
 {
-    tank.powerUpButtonEnabled = false;
+    this.powerUpButtonEnabled = false;
 }
 
 function powerUpButtonDown()
 {
-    tank.powerUpButtonEnabled = true;
+    this.powerUpButtonEnabled = true;
 }
 
 function powerDownButtonUp()
 {
-    tank.powerDownButtonEnabled = false;
+    this.powerDownButtonEnabled = false;
 }
 
 function powerDownButtonDown()
 {
-    tank.powerDownButtonEnabled = true;
+    this.powerDownButtonEnabled = true;
 }
 
 function Fire() {
