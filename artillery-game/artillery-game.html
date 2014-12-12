@@ -25,6 +25,17 @@
             if (Meteor.isClient) {                
 				var gameCreator = game();
                 gameCreator.createGame();
+
+				var avatar = document.getElementById('avatar');
+				avatar.style.visibility = 'hidden';
+                var catImage = document.getElementById('catimage');
+                catImage.style.visibility = 'hidden';
+                var playername = document.getElementById('playername');
+				playername.style.visibility = 'hidden';
+				var launchButton = document.getElementById('launchbutton');
+				launchButton.style.visibility = 'hidden';
+				var bar = document.getElementById('bar');
+				bar.style.visibility = 'hidden';
             }
         }
     </script>
@@ -33,13 +44,13 @@
 
 <body>
   <div class="wrap">
-		<div class="avatar">
-      <img src="assets/cat.png">
+		<div id="avatar" class="avatar" style="visibility:visible">
+      <img id="catimage" src="assets/cat.png" style="visibility:visible">
 		</div>
-		<input id="playername" autofocus type="text" placeholder="player name (optional)" required>
-            <div class="bar">
+		<input id="playername" autofocus type="text" placeholder="player name (optional)" style="visibility:visible" required>
+            <div id="bar" class="bar" style="visibility:visible">
 			<i></i>
 		</div>		
-		<button onclick="LaunchGame()">Play</button>		
+		<button id="launchbutton" onclick="LaunchGame()" style="visibility:visible">Play</button>		
 	</div>
 </body>

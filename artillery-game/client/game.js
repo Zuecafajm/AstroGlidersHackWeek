@@ -63,11 +63,6 @@ game = function () {
     }
 
     function create() {
-        game.sfx = game.add.audio('sfx');
-        game.sfx.addMarker('meow1', 0, 1.1);
-        game.sfx.addMarker('meow2', 1.3, 1.1);
-        game.sfx.addMarker('whine', 2.7, 0.8);
-        game.sfx.addMarker('purr', 5, 5);
 
         game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
         game.stage.disableVisibilityChange = true;
@@ -85,7 +80,11 @@ game = function () {
 
     function SetupSound()
     {
-
+        game.sfx = game.add.audio('sfx');
+        game.sfx.addMarker('meow1', 0, 1.1);
+        game.sfx.addMarker('meow2', 1.3, 1.1);
+        game.sfx.addMarker('whine', 2.7, 0.8);
+        game.sfx.addMarker('purr', 5, 5);
     }
 
     function FindMatch() {

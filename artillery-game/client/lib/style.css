@@ -6,7 +6,7 @@
 }
 
 body {
-	background: #448ed3 ;
+	background: #20572F ;
 	font-family: "Lato" ;
 }
 .wrap {
@@ -25,7 +25,7 @@ body {
 	position: relative;
 	bottom: -15px;
 }
-.avatar img {
+.avatar img {	
 	width: 55px;
 	height: 55px;
 	border-radius: 100px;
