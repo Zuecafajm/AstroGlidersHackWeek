@@ -6,11 +6,11 @@
 }
 
 body {
-	background: #20572F ;
+	background: #FFFFFF ;
 	font-family: "Lato" ;
 }
 .wrap {
-	width:250px;
+	width:350px;
 	height: auto;
 	margin: auto;
 	margin-top: 10%;
@@ -21,7 +21,7 @@ body {
 	width: 65px;
 	border-radius: 100px;
 	height: 65px;
-	background: #448ed3 ;
+	background: #2383AB ;
 	position: relative;
 	bottom: -15px;
 }
@@ -35,7 +35,7 @@ body {
 }
 .wrap input {
 	border: none;
-	background: #fff;
+	background: #2383AB;
   font-family:Lato ;
   font-weight:700 ;
 	display: block;
@@ -87,4 +87,30 @@ body {
 	font-size: 13px;	
 	border-bottom: 3px solid #307d63;
 	cursor: pointer;
+}
+
+.logoclass {
+	width:350px;
+	height: auto;
+	margin: auto;
+}
+
+.logoimage {
+	width: 100%;
+	margin: auto;
+	width: 65px;
+	border-radius: 100px;
+	height: 65px;
+	background: #448ed3 ;
+	position: relative;
+	bottom: -15px;
+}
+
+.logoimage img {
+	width: 55px;
+	height: 55px;
+	border-radius: 100px;
+	margin: auto;
+	border:3px solid #fff;
+	display: block;
 }
