@@ -42,6 +42,35 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, flip, game, matchId, pla
         tank.powerText = game.add.text(16, 16, 'Power: ' + (tank.power).toString(), { fontSize: '32px', fill: '#000' });
         tank.angleText = game.add.text(16, 48, 'Angle: ' + (Math.round(((tank.arm.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
 
+        tank.fireUIButton = game.add.button(game.world.centerX, game.world.height, 'shootButton', Fire, tank);
+        tank.fireUIButton.anchor.setTo(0.5, 1);        
+
+        tank.rotateButtonRight = false;
+        tank.rotateButtonLeft = false;
+        tank.powerUpButtonEnabled = false;
+        tank.powerDownButtonEnabled = false;
+
+        tank.rotateLeftButton = game.add.button(game.world.centerX - 110, game.world.height, 'rotateButton');
+        tank.rotateLeftButton.anchor.setTo(1, 1);        
+        tank.rotateLeftButton.onInputUp.add(rotateLeftButtonUp, tank);
+        tank.rotateLeftButton.onInputDown.add(rotateLeftButtonDown, tank);
+
+        tank.rotateRightButton = game.add.button(game.world.centerX + 110, game.world.height, 'rotateButton');
+        tank.rotateRightButton.anchor.setTo(1, 1);    
+        tank.rotateRightButton.scale.setTo(-1, 1);
+        tank.rotateRightButton.onInputUp.add(rotateRightButtonUp, tank);
+        tank.rotateRightButton.onInputDown.add(rotateRightButtonDown,tank);
+
+        tank.powerUpButton = game.add.button(game.world.centerX + 240, game.world.height, 'powerUpButton');
+        tank.powerUpButton.anchor.setTo(1, 1);
+        tank.powerUpButton.onInputUp.add(powerUpButtonUp, tank);
+        tank.powerUpButton.onInputDown.add(powerUpButtonDown, tank);
+
+        tank.powerDownButton = game.add.button(game.world.centerX - 240, game.world.height, 'powerDownButton');
+        tank.powerDownButton.anchor.setTo(0, 1);
+        tank.powerDownButton.onInputUp.add(powerDownButtonUp, tank);
+        tank.powerDownButton.onInputDown.add(powerDownButtonDown, tank);
+
         tank.active = true;
     }
 
@@ -73,6 +102,48 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, flip, game, matchId, pla
     return tank;
 }
 AstroGliders.Tank.prototype = new AstroGliders.Tank;
+
+function rotateLeftButtonUp()
+{
+    console.log("Rotate left up");
+    tank.rotateButtonRight = false;
+}
+
+function rotateLeftButtonDown()
+{
+    console.log("Rotate left down");
+    tank.rotateButtonRight = true;
+}
+
+function rotateRightButtonUp()
+{
+    tank.rotateButtonLeft = false;
+}
+
+function rotateRightButtonDown()
+{
+    tank.rotateButtonLeft = true;
+}
+
+function powerUpButtonUp()
+{
+    tank.powerUpButtonEnabled = false;
+}
+
+function powerUpButtonDown()
+{
+    tank.powerUpButtonEnabled = true;
+}
+
+function powerDownButtonUp()
+{
+    tank.powerDownButtonEnabled = false;
+}
+
+function powerDownButtonDown()
+{
+    tank.powerDownButtonEnabled = true;
+}
 
 function Fire() {
     if (this.active) {
@@ -189,6 +260,11 @@ function Cleanup() {
     this.game.world.remove(this.base);
     this.game.world.remove(this.arm);
     this.game.world.remove(this.arrow);
+    this.game.world.remove(tank.rotateLeftButton);
+    this.game.world.remove(tank.rotateRightButton);
+    this.game.world.remove(tank.powerUpButton);
+    this.game.world.remove(tank.powerDownButton);
+    this.game.world.remove(tank.fireUIButton);
 }
 
 function Update(otherPlayer, platforms, wall) {
@@ -266,26 +342,26 @@ function Update(otherPlayer, platforms, wall) {
     }
 
     if (this.active) {
-        if (this.powerUp.isDown && this.power < 150) {
+        if ((this.powerUp.isDown || this.powerUpButtonEnabled) && this.power < 150) {
             this.power += 1;
             this.arrow.scale.y = this.power / 100;
             this.game.world.remove(this.powerText);
             this.powerText = this.game.add.text(16, 16, 'Power: ' + (this.power).toString(), { fontSize: '32px', fill: '#000' });
         }
-        if (this.powerDown.isDown && this.power > 1) {
+        if ((this.powerDown.isDown || this.powerDownButtonEnabled) && this.power > 1) {
             this.power -= 1;
             this.arrow.scale.y = this.power / 100;
             this.game.world.remove(this.powerText);
             this.powerText = this.game.add.text(16, 16, 'Power: ' + (this.power).toString(), { fontSize: '32px', fill: '#000' });
         }
 
-        if (this.rotateRight.isDown) {
+        if (this.rotateRight.isDown || this.rotateButtonRight ) {
             this.arrow.rotation -= 0.0174532925;
             this.arm.rotation -= 0.0174532925;
             this.game.world.remove(this.angleText);
             this.angleText = this.game.add.text(16, 48, 'Angle: ' + (Math.round(((this.arm.rotation + Math.PI) * 57.2957795) * 10) / 10.0).toString(), { fontSize: '32px', fill: '#000' });
         }
-        if (this.rotateLeft.isDown) {
+        if (this.rotateLeft.isDown || this.rotateButtonLeft ) {
             this.arrow.rotation += 0.0174532925;
             this.arm.rotation += 0.0174532925;
             this.game.world.remove(this.angleText);

@@ -58,6 +58,10 @@ game = function () {
         game.load.image('catapult', '/assets/catapult_base.png');
         game.load.image('arm', '/assets/catapult_arm.png');
         game.load.image('arrow', '/assets/arrow.png');
+        game.load.image('shootButton', '/assets/shootButtonR3.jpg');
+        game.load.image('rotateButton', '/assets/rotateButtonR3.png');
+        game.load.image('powerUpButton', '/assets/powerUpButton.png');
+        game.load.image('powerDownButton', '/assets/powerDownButton.png');
 
         game.load.audio('sfx', '/assets/cat.m4a');
     }
