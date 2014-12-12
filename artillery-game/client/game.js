@@ -536,7 +536,7 @@ game = function () {
     }
 
     function SpawnSnowFlake() {
-        var snowflake = game.add.sprite(Math.random() * (gameWidth + 200) - 200, -30, 'snow');
+        var snowflake = game.add.sprite(Math.random() * (gameWidth + 50) - (50 * wind), -30, 'snow');
         snowflake.scale.x = Math.random() * 0.3 + 0.5;
         snowflake.scale.y = Math.random() * 0.3 + 0.5;
         
