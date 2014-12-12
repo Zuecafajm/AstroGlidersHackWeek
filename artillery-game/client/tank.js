@@ -148,9 +148,10 @@ function powerDownButtonDown()
 function Fire() {
     if (this.active) {
         this.desiredShotVelocity = new Phaser.Point(Math.cos(this.arrow.rotation + Math.PI / 2.0) * this.power * 5, Math.sin(this.arrow.rotation + Math.PI / 2.0) * this.power * 5);
+        this.desiredAngularVelocity = Math.random() * 300 - 150;
 
         this.hasQueuedShot = true;
-        Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: this.desiredShotVelocity, rotation: this.arrow.rotation });
+        Actions.insert({ matchId: this.matchId, playerId: this.playerId, actionType: ActionTypeEnum.PlayerShoot, velocity: this.desiredShotVelocity, rotation: this.arrow.rotation, angularVelocity : this.desiredAngularVelocity });
 
         this.active = false;
         this.shotCompleted = false;
@@ -161,8 +162,9 @@ function RotateAndShoot() {
     this.isRotating = true;
 }
 
-function SetShotVelocity(shotVelocity) {
+function SetShotVelocity(shotVelocity, angularVelocity) {
     this.desiredShotVelocity = shotVelocity;
+    this.desiredAngularVelocity = angularVelocity;
     this.hasQueuedShot = true;
     this.shotCompleted = false;
 }
@@ -191,11 +193,11 @@ function Shoot() {
     shot.body.gravity.x = this.wind;
     shot.body.gravity.y = 200;
 
-    shot.body.angularVelocity = Math.random() * 300 - 150;
-
     shot.enableBody = true;
 
     shot.body.velocity.set(this.desiredShotVelocity.x, this.desiredShotVelocity.y);
+
+    shot.body.angularVelocity = this.desiredAngularVelocity;
 
     shot.body.setSize(0.7 * shot.body.sourceWidth, 0.6 * shot.body.sourceHeight, 0, 0);
 

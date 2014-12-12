@@ -220,7 +220,7 @@ game = function () {
         else if (actionItem.actionType == ActionTypeEnum.PlayerShoot) {
             if (actionItem.playerId != playerId) {
                 rotationToSet = actionItem.rotation;
-                otherPlayerTank.SetShotVelocity(actionItem.velocity);
+                otherPlayerTank.SetShotVelocity(actionItem.velocity, actionItem.angularVelocity);
             }
         }
         else if (actionItem.actionType == ActionTypeEnum.GameOver) {
