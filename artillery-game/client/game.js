@@ -161,7 +161,7 @@ game = function () {
 
             // player 1 gets to decide the wind for the match
             var maxWind = (20 + 10 * Math.min(totalScore, 8));
-            wind = Math.round(Math.random() * maxWind * 2 - maxWind);
+            wind = -100;//Math.round(Math.random() * maxWind * 2 - maxWind);
 
             var maxWallHeight = 50 + Math.min(totalScore, 10) * 30;
             wallHeight = Math.random() * maxWallHeight;
@@ -536,7 +536,7 @@ game = function () {
     }
 
     function SpawnSnowFlake() {
-        var snowflake = game.add.sprite(Math.random() * (gameWidth + 50) - (50 * wind), -30, 'snow');
+        var snowflake = game.add.sprite(Math.random() * (gameWidth + 50 + 50 * Math.abs(wind)) - (25 * Math.abs(wind)), -30, 'snow');
         snowflake.scale.x = Math.random() * 0.3 + 0.5;
         snowflake.scale.y = Math.random() * 0.3 + 0.5;
         
