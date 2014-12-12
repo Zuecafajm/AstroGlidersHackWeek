@@ -161,7 +161,7 @@ game = function () {
 
             // player 1 gets to decide the wind for the match
             var maxWind = (20 + 10 * Math.min(totalScore, 8));
-            wind = -100;//Math.round(Math.random() * maxWind * 2 - maxWind);
+            wind = Math.round(Math.random() * maxWind * 2 - maxWind);
 
             var maxWallHeight = 50 + Math.min(totalScore, 10) * 30;
             wallHeight = Math.random() * maxWallHeight;

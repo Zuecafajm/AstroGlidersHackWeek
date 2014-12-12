@@ -19,6 +19,7 @@ AstroGliders.Tank = function (isPlayer, x, y, rotation, flip, game, matchId, pla
         tank.arm.scale.x = -1;
 
         tank.arm.position.x = -50;
+        tank.base.body.setSize(tank.base.body.sourceWidth, tank.base.body.sourceHeight, -tank.base.body.sourceWidth, 0);
     }
     else {
         tank.arm.position.x = 50;
@@ -207,8 +208,6 @@ function Shoot() {
     shot.body.velocity.set(this.desiredShotVelocity.x, this.desiredShotVelocity.y);
 
     shot.body.angularVelocity = this.desiredAngularVelocity;
-
-    shot.body.setSize(0.7 * shot.body.sourceWidth, 0.6 * shot.body.sourceHeight, 0, 0);
 
     this.hasQueuedShot = false;
 }
