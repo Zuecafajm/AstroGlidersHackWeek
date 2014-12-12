@@ -236,7 +236,7 @@ game = function () {
         }
         else if (actionItem.actionType == ActionTypeEnum.PlayerDisconnect) {
             Cleanup();
-            waitingForPlayerText = game.add.text(gameWidth / 2, gameHeight / 2, 'THE OTHER PLAYER IS SCARED OF YOU\nFINDING YOU A NEW MATCH', { fontSize: '32px', fill: '#000' });
+            waitingForPlayerText = game.add.text(gameWidth / 2, gameHeight / 2, 'THE OTHER PLAYER IS A SCAREDY CAT\n        FINDING YOU A NEW MATCH', { fontSize: '32px', fill: '#000' });
 
             waitingForPlayerText.anchor.setTo(0.5, 0.5);
 
