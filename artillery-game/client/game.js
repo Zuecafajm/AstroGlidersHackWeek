@@ -53,7 +53,9 @@ game = function () {
     function preload() {
         game.load.image('ground', '/assets/platform.png');
         game.load.image('sky', '/assets/sky.png');
-        game.load.image('cat', '/assets/cat.png');
+        game.load.image('cat1', '/assets/cat.png');
+        game.load.image('cat2', '/assets/cat2.png');
+        game.load.image('cat3', '/assets/cat3.png');
         game.load.image('snow', '/assets/snow.png');
         game.load.image('catapult', '/assets/catapult_base.png');
         game.load.image('arm', '/assets/catapult_arm.png');
@@ -443,9 +445,26 @@ game = function () {
             otherPlayerTank.Update(playerTank, platforms, wall);
 
             if (playerTank.hasQueuedShot && otherPlayerTank.hasQueuedShot) {
-                playerTank.RotateAndShoot();
+
+                var shotType1 = Math.round(Math.random() * 2);
+                var shotType2 = Math.round(Math.random());
+                if (shotType1 == 0) {
+                    if (shotType2 == 0) {
+                        shotType2 = 1;
+                    }
+                    else {
+                        shotType2 = 2;
+                    }
+                }
+                else if (shotType1 == 1) {
+                    if (shotType2 == 1) {
+                        shotType2 = 2;
+                    }
+                }
+
+                playerTank.RotateAndShoot(shotType1);
                 otherPlayerTank.SetRotationDestination(rotationToSet);
-                otherPlayerTank.RotateAndShoot();
+                otherPlayerTank.RotateAndShoot(shotType2);
             }
 
             GoToGameOverOrNextTurn();

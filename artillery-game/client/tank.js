@@ -158,8 +158,9 @@ function Fire() {
     }
 }
 
-function RotateAndShoot() {
+function RotateAndShoot(catType) {
     this.isRotating = true;
+    this.desiredCatType = catType;
 }
 
 function SetShotVelocity(shotVelocity, angularVelocity) {
@@ -170,7 +171,15 @@ function SetShotVelocity(shotVelocity, angularVelocity) {
 }
 
 function Shoot() {
-    shot = this.game.add.sprite(this.x, this.y, 'cat');
+    if (this.desiredCatType == 0) {
+        shot = this.game.add.sprite(this.x, this.y, 'cat1');
+    }
+    else if (this.desiredCatType == 1) {
+        shot = this.game.add.sprite(this.x, this.y, 'cat2');
+    }
+    else {
+        shot = this.game.add.sprite(this.x, this.y, 'cat3');
+    }
 
     if (this.isPlayer) {
         this.game.sfx.play('meow1');
